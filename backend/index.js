@@ -1,6 +1,8 @@
 import express from 'express';
-import { PORT, MONGO_URI } from './config.js';
 import mongoose from 'mongoose';
+import cors from 'cors';
+
+// Importações de rotas
 import sociosRoute from './routes/sociosRoute.js';
 import adseRoute from './routes/adseRoute.js';
 import compartSSRoute from './routes/compartSSRoute.js';
@@ -9,60 +11,42 @@ import processamentoRoute from './routes/processamentoRoute.js';
 import pagamentoRoute from './routes/pagamentoRoute.js';
 import sepaRoute from './routes/sepaRoute.js';
 import relatorioRoute from './routes/relatorioRoute.js';
-import cors from 'cors';
 
+// Configurações
 const app = express();
+const PORT = process.env.PORT || 5555; // Usa a porta fornecida pelo Heroku ou 5555 como fallback
+const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://andrefilipe83:ACBIm325lA1PXvWf@projeto.imes1yp.mongodb.net/?retryWrites=true&w=majority&appName=projeto';
 
-// Middleware para análise de corpos de requisição
+// Middleware
 app.use(express.json());
-
-// Middleware para permitir CORS
 app.use(cors());
 
+// Rota raiz
 app.get('/', (request, response) => {
     return response.status(200).send('Hello World');
 });
 
-// Usar a rota para /socios
+// Rotas
 app.use('/socios', sociosRoute);
-
-// Nova rota específica para pesquisa de sócios com filtros
-//app.use('/socios/search', sociosRoute); // Adiciona a nova rota para a pesquisa
-
-// Usar a rota para /adse
 app.use('/adse', adseRoute);
-
-// Usar a rota para /compartss
-app.use('/compartss', compartSSRoute); 
-
-// Usar a rota para /subsss
-app.use('/subsss', subsSSRoute); 
-
-// Usar a rota para /processamento
+app.use('/compartss', compartSSRoute);
+app.use('/subsss', subsSSRoute);
 app.use('/processamento', processamentoRoute);
-
-// Usar a rota para /pagamento
 app.use('/pagamento', pagamentoRoute);
-
-// Usar a rota para /sepa
 app.use('/', sepaRoute);
-
-// Usar a rota para /relatorio
-//app.use('/', relatorioRoute);
 app.use('/relatorio', relatorioRoute);
 
+// Conexão com o banco de dados e inicialização do servidor
 mongoose
-    .connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .connect(MONGO_URI)
     .then(() => {
         console.log('Database connected');
         app.listen(PORT, () => {
-            console.log(`Server is running on ${PORT}`);
+            console.log(`Server is running on port ${PORT}`);
         });
     })
     .catch((error) => {
-        console.log('Error connecting to database', error.message);
+        console.log('Error connecting to database:', error.message);
     });
 
-
-
-
+export default app;
