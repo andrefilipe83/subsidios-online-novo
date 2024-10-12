@@ -1,0 +1,2 @@
+ligação à BD via compass:
+mongodb+srv://carlos:^sJ)G@P6m)v}H^Z@projeto.imes1yp.mongodb.net/?retryWrites=true&w=majority&appName=projeto

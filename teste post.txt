@@ -1,0 +1,50 @@
+curl -X POST -H "Content-Type: application/json" -d '{
+    "socio_nr": "5",
+    "subsidy_code": "0205", 
+    "quantity": 1
+}' http://localhost:5555/subsss/calcular
+
+curl -X POST -H "Content-Type: application/json" -d '{
+    "socio_nr": "5",
+    "subsidy_code": "0205", 
+    "quantity": 1
+}' http://localhost:5555/subsss/calcular
+
+
+curl -X POST -H "Content-Type: application/json" -d '{
+    "socio_nr": "1",
+    "doc_nr": "doc123",
+    "doc_data": "2024-06-16T12:02:27.000Z",
+    "doc_valortotal": "100",
+    "sscomp_cod": "0101",
+    "valor_unit": "50",
+    "quantidade": "2"
+}' http://localhost:5555/compartss/processamento
+
+
+Teste só com código ADSE
+curl -X POST -H "Content-Type: application/json" -d '{
+    "socio_nr": "1",
+    "doc_nr": "doc1234",
+    "doc_data": "2024-06-16T12:02:27.000Z",
+    "doc_valortotal": "100",
+    "adse_codigo": "0110",
+    "valor_unit": "50",
+    "quantidade": "1"
+}' http://localhost:5555/adse/processamento
+
+Teste com código ADSE e Serviços Sociais
+curl -X POST -H "Content-Type: application/json" -d '{
+    "socio_nr": "1",
+    "doc_nr": "doc1234",
+    "doc_data": "2024-06-16T12:02:27.000Z",
+    "doc_valortotal": "100",
+    "adse_codigo": "0110",
+    "sscomp_cod": "0101",
+    "valor_unit": "50",
+    "quantidade": "1"
+}' http://localhost:5555/adse/processamento
+
+teste111111
+u@hsob3B39NE(PDsbb^CCGrT
+

@@ -1,0 +1,74 @@
+<?php
+/*
+Plugin Name: Ficha de s?cios
+Description: Integra??o personalizada com o backend para exibir a lista de s?cios.
+Version: 1.0
+Author: O teu nome
+*/
+
+// Fun??o para fazer a chamada ? API e obter os dados dos s?cios
+
+// Fun??o para exibir o formul?rio de s?cio
+function display_socio_form() {
+    ob_start();
+    echo '<form method="POST" action="/socios/create" style="display: flex; flex-wrap: wrap; gap: 10px;">'; // Adicionado 'gap' para criar espaço entre os elementos
+    echo '<h2 style="flex-basis: 100%;">Ficha de sócio</h2>'; // Adicionado 'flex-basis: 100%;' para forçar uma nova linha
+    echo '<div style="flex: 0 1 120px;">'; // Ajustado 'flex' para alocar menos espaço para o número
+    echo '<label for="numero">Nr. sócio:</label><br>';
+    echo '<input type="text" id="numero" name="numero">';
+    echo '</div>';
+    echo '<div style="flex: 1 1 200px;">'; // Ajustado 'flex' para alocar mais espaço para o nome
+    echo '<label for="nome">Nome:</label><br>';
+    echo '<input type="text" id="nome" name="nome">';
+    echo '</div>';
+    echo '<div style="flex-basis: 100%; margin-bottom: 5px;"></div>'; // Adicionado 'margin-bottom: 5px;' ao div vazio para ajustar o espaço entre as linhas
+    echo '<div style="flex: 0 1 240px;">'; // Ajustado 'flex' para alocar menos espaço para o contribuinte
+    echo '<label for="contribuinte">Contribuinte:</label><br>';
+    echo '<input type="text" id="contribuinte" name="contribuinte">';
+    echo '</div>';
+    echo '<div style="flex: 1;">'; // Ajustado 'flex' para alocar o resto do espaço para o IBAN
+    echo '<label for="iban">IBAN:</label><br>';
+    echo '<input type="text" id="iban" name="iban">';
+    echo '</div>';
+    echo '<div style="flex-basis: 100%;">'; // Adicionado 'flex-basis: 100%;' para forçar uma nova linha para o campo de morada
+    echo '<label for="morada">Morada:</label><br>';
+    echo '<input type="text" id="morada" name="morada"><br>';
+    echo '<input type="text" id="morada2" name="morada2"><br>'; // Adicionado um segundo campo de morada
+    echo '</div>';
+    
+    
+    echo '<div style="flex: 0 1 240px;">'; // Ajustado 'flex' para alocar menos espaço para o código postal
+    echo '<label for="codigo_postal">Código Postal:</label><br>';
+    echo '<input type="text" id="codigo_postal" name="codigo_postal">';
+    echo '</div>';
+    echo '<div style="flex: 1;">'; // Ajustado 'flex' para alocar o resto do espaço para a localidade
+    echo '<label for="localidade">Localidade:</label><br>';
+    echo '<input type="text" id="localidade" name="localidade">';
+    echo '</div>';
+    echo '<div style="flex-basis: 100%;">'; // Adicionado 'flex-basis: 100%;' para forçar uma nova linha para os restantes campos
+
+
+    echo '<div style="flex: 0 1 240px;">'; // Ajustado 'flex' para alocar menos espaço para o código postal
+    echo '<label for="telefone">Telefone:</label><br>';
+    echo '<input type="tel" id="telefone" name="telefone">';
+    echo '</div>';
+    echo '<div style="flex: 1;">'; // Ajustado 'flex' para alocar o resto do espaço para a localidade
+    echo '<label for="email">E-mail:</label><br>';
+    echo '<input type="email" id="email" name="email">';
+    echo '</div>';
+    echo '<div style="flex-basis: 100%;">'; // Adicionado 'flex-basis: 100%;' para forçar uma nova linha para os restantes campos
+
+
+
+
+    // echo '<label for="email">Email:</label><br>';
+    // echo '<input type="email" id="email" name="email"><br>';
+    // echo '<label for="telefone">Telefone:</label><br>';
+    // echo '<input type="tel" id="telefone" name="telefone"><br>';
+    echo '<label for="sistema_saude">Sistema de Saúde:</label><br>';
+    echo '<input type="text" id="sistema_saude" name="sistema_saude"><br>';
+    echo '<input type="submit" value="Submeter">';
+    echo '</form>';
+    return ob_get_clean();
+}
+add_shortcode('socio_form', 'display_socio_form');

@@ -1,0 +1,8 @@
+Caro Sócio n.º [numero de sócio] - [nome do sócio],
+Serve o presente para informar que, relativamente à despesa [Descrição do código dos Serviços Sociais], no valor de [valor da despesa], constante do documento n.º [número da fatura] e valor de [valor da despesa], foi processado o reembolso de [valor do reembolso dos Serviços Sociais], cujo pagamento por transferência bancária se prevê para os próximos dias.
+Com os melhores cumprimentos,
+Os Serviços Sociais dos Trabalhadores do Município de Montemor-o-Novo
+
+
+Isto é só um exemplo. Depois podem querer ajustar o texto ou os campos, mas penso que estes sejam os mais importantes.
+Se alguns campos não estiverem no processamento, avança com o envio do email na mesma sem preencher o campo e depois ajusta-se.

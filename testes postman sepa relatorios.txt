@@ -1,0 +1,5 @@
+Para gerar relatório dos pagamentos:
+http://localhost:5555/relatorio/generate-pdf-report?data_inicio=2024-01-01&data_fim=2024-12-31&metodo_pagamento=SEPA
+
+Para gerar o ficheiro xml dos pagamentos:
+http://localhost:5555/generate-sepa?data_inicio=2024-08-28&data_fim=2024-12-28&metodo_pagamento=SEPA

@@ -1,0 +1,175 @@
+/* ProcesAdse.css */
+
+.flex {
+  display: flex;
+}
+
+.gap-5 {
+  gap: 1.25rem;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.self-stretch {
+  align-self: stretch;
+}
+
+.px-5 {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.my-auto {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.text-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-white {
+  color: #fff;
+}
+
+.whitespace-nowrap {
+  white-space: nowrap;
+}
+
+.max-md\:flex-wrap {
+  flex-wrap: wrap;
+}
+
+.max-md\:mt-10 {
+  margin-top: 2.5rem;
+}
+
+.bg-sky-500 {
+  background-color: #0ea5e9;
+}
+
+.rounded-xl {
+  border-radius: 0.75rem;
+}
+
+.bg-zinc-300 {
+  background-color: #d4d4d8;
+}
+
+.h-\[61px\] {
+  height: 61px;
+}
+
+.w-\[174px\] {
+  width: 174px;
+}
+
+.grow {
+  flex-grow: 1;
+}
+
+.shrink-0 {
+  flex-shrink: 0;
+}
+
+.border {
+  border-width: 1px;
+}
+
+.border-black {
+  border-color: #000;
+}
+
+.border-solid {
+  border-style: solid;
+}
+
+.mt-6 {
+  margin-top: 1.5rem;
+}
+
+.mt-5 {
+  margin-top: 1.25rem;
+}
+
+.mt-7 {
+  margin-top: 1.75rem;
+}
+
+.max-w-full {
+  max-width: 100%;
+}
+
+.px-8 {
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+.py-7 {
+  padding-top: 1.75rem;
+  padding-bottom: 1.75rem;
+}
+
+.py-3\.5 {
+  padding-top: 0.875rem;
+  padding-bottom: 0.875rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.text-black {
+  color: #000;
+}
+
+.max-md\:px-5 {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.max-md\:mt-10 {
+  margin-top: 2.5rem;
+}
+
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.mt-11 {
+  margin-top: 2.75rem;
+}
+
+.mt-20 {
+  margin-top: 5rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.text-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}

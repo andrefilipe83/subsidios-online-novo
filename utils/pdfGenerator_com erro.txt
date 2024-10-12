@@ -1,0 +1,136 @@
+import PDFDocument from 'pdfkit';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import Socio from '../models/socio.js';
+
+// Definir __dirname para ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Função para formatar valores em euros
+function formatarEmEuros(valor) {
+    return valor.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
+}
+
+export function generatePdfReport(res, pagamentos) {
+    // Criar o documento PDF
+    const doc = new PDFDocument({ margin: 50 });
+
+    // Adicionar manipulador de erros para o fluxo
+    doc.on('error', (err) => {
+        console.error('Erro ao gerar o PDF:', err);
+        res.status(500).send('Erro ao gerar o relatório PDF.');
+    });
+
+    // Enviar o documento PDF diretamente como resposta
+    res.setHeader('Content-Disposition', 'attachment; filename="relatorio_pagamentos.pdf"');
+    res.setHeader('Content-Type', 'application/pdf');
+    doc.pipe(res);  // Enviar o PDF como resposta
+
+    // Carregar a fonte personalizada (Arial, por exemplo)
+    const fontPath = path.join(__dirname, '../fonts/arial.ttf');
+    doc.registerFont('Arial', fontPath);
+
+    // Definir a fonte para todo o documento
+    doc.font('Arial');
+
+    // Adicionar uma imagem ao cabeçalho (tamanho aumentado e posicionada no canto superior esquerdo)
+    const imagePath = path.join(__dirname, '../img/logo_report.png');
+    doc.image(imagePath, 50, 40, { width: 200 })  // Aumentar o tamanho da imagem
+        .moveDown(4);  // Mover para baixo para evitar sobreposição
+
+    // Adicionar o título (centralizado)
+    doc.fontSize(20)
+        .text('Relatório de Pagamentos SEPA', { align: 'center' })
+        .moveDown(1.5);
+
+    // Cabeçalho da tabela (tudo em uma única linha)
+    const yPosition = doc.y;
+    doc.fontSize(12)
+        .fillColor('black')
+        .text('Nr.:', 50, yPosition)
+        .text('Nome:', 100, yPosition)
+        .text('IBAN', 250, yPosition)
+        .text('Valor (€)', 450, yPosition)
+        .moveDown(0.5);
+
+    // Linha horizontal abaixo do cabeçalho
+    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+
+    let totalTransferencias = 0;
+
+    // Listar os pagamentos com formatação
+    // pagamentos.forEach((pagamento, index) => {
+    //     const socio = pagamento.socio_nr;
+    //     const nomeSocio = 'Nome do Sócio'; // Substituir pelo nome do sócio real
+    //     const iban = 'IBAN do Sócio'; // Substituir pelo IBAN real
+    //     const valorTotal = pagamento.processamentos.reduce((acc, proc) => acc + (proc.valor_reembolso || 0), 0);
+
+    //     totalTransferencias += valorTotal;  // Somar ao total
+
+    //     // Alternar cor de fundo para cada linha da tabela
+    //     if (index % 2 === 0) {
+    //         doc.rect(50, doc.y, 500, 20).fill('#f0f0f0').stroke(); // Cor de fundo clara
+    //         doc.fillColor('black'); // Voltar a cor para texto
+    //     }
+
+    // Preencher os pagamentos com os dados dos sócios
+    for (const pagamento of pagamentos) {
+        const socio = await Socio.findOne({ socio_nr: pagamento.socio_nr });
+        const nomeSocio = socio ? socio.nome : 'Nome não encontrado';
+        const iban = socio ? socio.IBAN : 'IBAN não encontrado';
+        const valorTotal = pagamento.processamentos.reduce((acc, proc) => acc + (proc.valor_reembolso || 0), 0);
+
+        totalTransferencias += valorTotal;
+
+        // Alternar cor de fundo para cada linha da tabela
+        if (pagamento.index % 2 === 0) {
+            doc.rect(50, doc.y, 500, 20).fill('#f0f0f0').stroke(); // Cor de fundo clara
+            doc.fillColor('black');
+        }
+   
+
+        // Exibir os dados com posicionamento absoluto
+        const currentY = doc.y + 5; //estava +5 // Posicionar a linha de dados um pouco abaixo da linha atual
+        doc.text(socio, 50, currentY)
+            .text(nomeSocio, 100, currentY)
+            .text(iban, 250, currentY)
+            .text(formatarEmEuros(valorTotal), 450, currentY);
+            //.moveDown();
+        
+        // Adicionar o total das transferências ao final, numa linha separada
+    doc.moveDown(2);
+    doc.fontSize(12).fillColor('black')
+        .text(`Total das Transferências: ${formatarEmEuros(totalTransferencias)}`, 50, doc.y, { align: 'right' });
+
+    // Adicionar o total das transferências ao final, numa linha separada
+    doc.moveDown(2);
+    doc.fontSize(12).fillColor('black')
+    .text(`Total das Transferências: ${formatarEmEuros(totalTransferencias)}`, 50, doc.y, { align: 'left' });
+
+    // Adicionar rodapé com data/hora e numeração de página
+    const numeroPaginas = doc.bufferedPageRange().count;
+    doc.on('pageAdded', () => {
+        adicionarRodape(doc, numeroPaginas);    
+    });
+
+    adicionarRodape(doc, numeroPaginas);
+    // Finalizar o PDF e encerrar o fluxo
+    doc.end();
+}
+
+
+// Função para adicionar o rodapé
+function adicionarRodape(doc, totalPaginas) {
+    const dataHora = formatarDataHora();
+    const paginaAtual = doc.pageNumber;
+
+    doc.fontSize(10)
+        .fillColor('gray')
+        .text(`Data/Hora: ${dataHora}`, 50, doc.page.height - 50, { align: 'left' });
+
+    doc.text(`Página ${paginaAtual} de ${totalPaginas}`, doc.page.width - 150, doc.page.height - 50, {
+        align: 'right'
+    });
+}}
