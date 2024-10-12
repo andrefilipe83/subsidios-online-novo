@@ -1,8 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-
-// Importações de rotas
+// Importações de rotas (mantenha as mesmas)
 import sociosRoute from './routes/sociosRoute.js';
 import adseRoute from './routes/adseRoute.js';
 import compartSSRoute from './routes/compartSSRoute.js';
@@ -14,19 +13,25 @@ import relatorioRoute from './routes/relatorioRoute.js';
 
 // Configurações
 const app = express();
-const PORT = process.env.PORT || 5555; // Usa a porta fornecida pelo Heroku ou 5555 como fallback
+const PORT = process.env.PORT || 5555;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://andrefilipe83:ACBIm325lA1PXvWf@projeto.imes1yp.mongodb.net/?retryWrites=true&w=majority&appName=projeto';
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+
+// Configuração do CORS
+app.use(cors({
+  origin: 'https://dev.andrealface.com',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Rota raiz
 app.get('/', (request, response) => {
     return response.status(200).send('Hello World');
 });
 
-// Rotas
+// Rotas (mantenha as mesmas)
 app.use('/socios', sociosRoute);
 app.use('/adse', adseRoute);
 app.use('/compartss', compartSSRoute);
