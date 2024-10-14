@@ -21,10 +21,15 @@ app.use(express.json());
 
 // Configuração do CORS
 app.use(cors({
-  origin: 'https://dev.andrealface.com',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+    origin: 'https://dev.andrealface.com',
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
+
+  app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+  });
 
 // Rota raiz
 app.get('/', (request, response) => {
