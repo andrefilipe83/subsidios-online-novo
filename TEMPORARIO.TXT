@@ -1,3 +1,5 @@
+TESTE
+
 <?php
 /*
 Plugin Name: Ficha de s?cios
