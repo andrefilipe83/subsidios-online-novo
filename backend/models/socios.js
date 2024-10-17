@@ -8,8 +8,8 @@ const socioSchema = new Schema({
     },
     email: {
         type: String,
-        required: true,
-        unique: true,
+        required: false, //não pode ser obrigatório porque há sócios que não têm
+        unique: false, //o mesmo email pode servir para mais do que um sócio
     },
     birthday: {
         type: Date,

@@ -92,7 +92,7 @@ router.get('/:socio_nr', async (req, res) => {
 router.patch('/:id', async (req, res) => {
     try {
         const socio = await Socio.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
+            //new: true, //teste para a atualização
             runValidators: true
         });
         if (!socio) {

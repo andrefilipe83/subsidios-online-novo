@@ -1,2 +1,17 @@
-liga��o � BD via compass:
+ligação à BD via compass:
 mongodb+srv://carlos:^sJ)G@P6m)v}H^Z@projeto.imes1yp.mongodb.net/?retryWrites=true&w=majority&appName=projeto
+
+na linha de comandos, fazer login no heroku:
+heroku login
+
+para fazer comitts e pushs:
+git add .
+git commit -m "descrição das alterações"
+git push origin main
+git push heroku main
+
+para fazer pulls:
+git pull origin main
+
+para aceder aos logs do backend:
+heroku logs --tail --app ssmmn-novo
