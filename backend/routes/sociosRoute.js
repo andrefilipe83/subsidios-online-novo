@@ -96,6 +96,7 @@ router.patch('/:id', async (req, res) => {
             runValidators: true
         });
         if (!socio) {
+            console.log('socio a atualizar:', socio);
             return res.status(404).send();
         }
         res.status(200).send(socio);

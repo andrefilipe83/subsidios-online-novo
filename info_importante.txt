@@ -3,6 +3,8 @@ mongodb+srv://carlos:^sJ)G@P6m)v}H^Z@projeto.imes1yp.mongodb.net/?retryWrites=tr
 
 na linha de comandos, fazer login no heroku:
 heroku login
+adicionar o remote se for necessário:
+heroku git:remote -a ssmmn-novo
 
 para fazer comitts e pushs:
 git add .
