@@ -91,7 +91,7 @@ router.get('/:socio_nr', async (req, res) => {
 // Atualizar um sócio por ID
 router.patch('/:id', async (req, res) => {
     try {
-        const socio = await Socio.findByIdAndUpdate(req.params.id, req.body, {
+        const socio = await Socio.findByIdAndUpdate(req.params._id, req.body, { //acrescentei o '_'
             new: true, //teste para a atualização
             runValidators: true
         });
