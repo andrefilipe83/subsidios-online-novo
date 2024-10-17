@@ -100,9 +100,11 @@ router.patch('/:id', async (req, res) => {
             console.log('socio a atualizar:', socio);
             return res.status(404).send();
         }
+        console.log('id do socio capturado antes de gravar:', socio._id);
+        console.log('nome do socio capturado antes de gravar:', socio.name);
         res.status(200).send(socio);
-        console.log('id do socio capturado:', socio._id);
-        console.log('nome do socio capturado:', socio.name);
+        console.log('id do socio capturado depois de gravar:', socio._id);
+        console.log('nome do socio capturado depois de gravar:', socio.name);
         console.log('não gravei nada');
     } catch (error) {
         console.error('Erro ao atualizar sócio:', error);
