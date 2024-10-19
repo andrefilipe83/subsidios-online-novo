@@ -1,6 +1,37 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
+const agregadoSchema = new Schema({
+    name: {
+        type: String,
+        required: true,
+    },
+    birthday: {
+        type: Date,
+        required: true,
+    },
+    status: {
+        type: String,
+        enum: ['Ativo', 'Não Ativo'],
+        default: 'Ativo',
+    },
+    type: {
+        type: String,
+        enum: ['Cônjuge', 'Descendente'],
+        required: true,
+    },
+    contribuinte: { 
+        type: String,
+        required: false,
+    },
+    health_system: { 
+        type: String,
+        enum: ['ADSE', 'Seg. Social'],
+        default: 'Seg. Social',
+        required: false,
+    },
+});
+
 const socioSchema = new Schema({
     name: {
         type: String,
@@ -33,10 +64,6 @@ const socioSchema = new Schema({
         enum: ['Trabalhador', 'Cônjuge', 'Descendente'],
         required: true,
     },
-    // effectiveMemberId: { 
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     default: () => new mongoose.Types.ObjectId() 
-    // },
     socio_nr: { 
         type: String,
         required: true,
@@ -82,6 +109,10 @@ const socioSchema = new Schema({
     },
     conta_SNC: { 
         type: String,
+        required: false,
+    },
+    agregado: {
+        type: [agregadoSchema],
         required: false,
     },
 });
