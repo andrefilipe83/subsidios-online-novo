@@ -2,9 +2,11 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { generateSEPAPdfReport } from '../../utils/pdfGenerator.js';  // Importar a fun��o de gera��o de PDF
+import { generateContaCorrentePdfReport } from '../../utils/pdfGenerator.js';  // Função para gerar o PDF
 import { fileURLToPath } from 'url'; // Para obter o caminho correto ao usar ES6 módulos
 import Pagamento from '../models/pagamento.js';
 import Socio from '../models/socios.js'; // Importar o modelo de sócio
+import Processamento from '../models/processamento.js';
 
 const router = express.Router();
 
@@ -98,6 +100,49 @@ router.get('/generate-email-report', async (req, res) => {
     }
 });
 
+// Função para gerar o relatório de conta corrente de sócios
+router.get('/generate-conta-corrente-report', async (req, res) => {
+    try {
+        const { socio_nr, data_inicio, data_fim } = req.query;
 
+        if (!socio_nr) {
+            return res.status(400).send('O número de sócio é obrigatório.');
+        }
+
+        const filtros = {
+            socio_nr: socio_nr,
+            createdAt: {
+                $gte: new Date(data_inicio),
+                $lte: new Date(data_fim),
+            }
+        };
+
+        // Encontrar os processamentos de acordo com os filtros
+        const processamentos = await Processamento.find(filtros);
+
+        if (!processamentos.length) {
+            return res.status(404).send('Nenhum processamento encontrado para o sócio e período selecionados.');
+        }
+
+        // Calcular os totais de processamentos pagos e não pagos
+        let totalPago = 0;
+        let totalNaoPago = 0;
+
+        processamentos.forEach(processamento => {
+            if (processamento.pago) {
+                totalPago += processamento.valor_reembolso;
+            } else {
+                totalNaoPago += processamento.valor_reembolso;
+            }
+        });
+
+        // Gerar o relatório PDF (usando a função geradora de PDF)
+        generateContaCorrentePdfReport(res, processamentos, totalPago, totalNaoPago, socio_nr);
+
+    } catch (error) {
+        console.error('Erro ao gerar o relatório de conta corrente:', error);
+        res.status(500).send('Erro ao gerar o relatório de conta corrente.');
+    }
+});
 
 export default router;

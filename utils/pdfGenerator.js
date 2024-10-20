@@ -143,3 +143,42 @@ export async function generateSEPAPdfReport(res, pagamentos) {
 
     doc.end();
 }
+
+// Função para gerar o PDF de conta corrente
+export async function generateContaCorrentePdfReport(res, processamentos, totalPago, totalNaoPago, socio_nr) {
+    const doc = new PDFDocument({ size: 'A4' });
+
+    // Definir o cabeçalho do relatório
+    doc.fontSize(16).text(`Relatório de Conta Corrente - Sócio ${socio_nr}`, { align: 'center' });
+    doc.moveDown();
+
+    doc.fontSize(12).text(`Período: ${new Date().toLocaleDateString()}`, { align: 'left' });
+    doc.moveDown();
+
+    // Tabela de Processamentos
+    doc.fontSize(12).text('Processamentos:');
+    doc.moveDown();
+
+    processamentos.forEach((processamento) => {
+        doc.text(`Processamento: ${processamento.proc_cod}`);
+        doc.text(`Data Documento: ${new Date(processamento.data_documento).toLocaleDateString()}`);
+        doc.text(`Valor Total do Documento: ${processamento.doc_valortotal} EUR`);
+        doc.text(`Valor Reembolso: ${processamento.valor_reembolso} EUR`);
+        doc.text(`Pago: ${processamento.pago ? 'Sim' : 'Não'}`);
+        if (processamento.pago) {
+            doc.text(`Data de Pagamento: ${new Date(processamento.data_pagamento).toLocaleDateString()}`);
+        }
+        doc.moveDown();
+    });
+
+    // Totais
+    doc.moveDown();
+    doc.fontSize(12).text(`Total Pago: ${totalPago.toFixed(2)} EUR`);
+    doc.text(`Total Processado mas por Pagar: ${totalNaoPago.toFixed(2)} EUR`);
+    
+    // Finalizar o documento
+    doc.end();
+    
+    // Enviar o PDF gerado para o cliente
+    doc.pipe(res);
+}
