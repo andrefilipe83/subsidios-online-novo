@@ -196,9 +196,9 @@ export async function generateContaCorrentePdfReport(res, processamentos, totalP
 
         doc.text(processamento.proc_cod, 50, currentY)
             .text(dataDocumento, 100, currentY)
-            .text(formatarEmEuros(processamento.doc_valortotal), 150, currentY, { align: 'right' })
-            .text(formatarEmEuros(processamento.valor_reembolso), 200, currentY, { align: 'right' })
-            .text(processamento.pago ? 'Sim' : 'Não', 250, currentY, { align: 'right' })
+            .text(formatarEmEuros(processamento.doc_valortotal), 150, currentY)
+            .text(formatarEmEuros(processamento.valor_reembolso), 200, currentY)
+            .text(processamento.pago ? 'Sim' : 'Não', 250, currentY)
             .text(dataPagamento, 300, currentY, { align: 'right' });
 
         doc.moveDown(0.5);
