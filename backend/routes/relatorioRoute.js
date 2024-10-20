@@ -45,7 +45,7 @@ router.get('/generate-SEPA-pdf-report', async (req, res) => {
 // Função para gerar um nome de ficheiro único baseado na data e hora
 function gerarNomeFicheiro() {
     const now = new Date();
-    const nomeFicheiro = `emails${now.getDate()}${now.getMonth() + 1}${now.getFullYear()}${now.getHours()}${now.getMinutes()}.txt`;
+    const nomeFicheiro = `emails${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}.txt`;
     return nomeFicheiro;
 }
 
@@ -68,7 +68,14 @@ router.get('/generate-email-report', async (req, res) => {
         // Resolver o caminho corretamente usando `fileURLToPath` e `import.meta.url`
         const __filename = fileURLToPath(import.meta.url);
         const __dirname = path.dirname(__filename);
-        const filePath = path.join(__dirname, '../../exports', fileName);
+        const exportDir = path.join(__dirname, '../../exports');
+
+        // Verificar se o diretório 'exports' existe, caso contrário criá-lo
+        if (!fs.existsSync(exportDir)) {
+            fs.mkdirSync(exportDir, { recursive: true });
+        }
+
+        const filePath = path.join(exportDir, fileName);
 
         // Gravar o conteúdo num ficheiro .txt
         fs.writeFile(filePath, emailList, (err) => {
