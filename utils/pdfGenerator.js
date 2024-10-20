@@ -53,6 +53,23 @@ function adicionarCabecalhoTabela(doc) {
     doc.moveTo(50, doc.y).lineTo(563, doc.y).stroke();
 }
 
+// Função para adicionar o cabeçalho da tabela
+function adicionarCabecalhoTabelaContaCorrente(doc) {
+    const yPosition = doc.y;
+    doc.fontSize(10)
+        .fillColor('black')
+        .text('Código', 50, yPosition)
+        .text('Data Documento', 150, yPosition)
+        .text('Valor Total', 250, yPosition, { align: 'right' })
+        .text('Valor Reembolso', 350, yPosition, { align: 'right' })
+        .text('Pago', 450, yPosition, { align: 'right' })
+        .text('Data de Pagamento', 500, yPosition, { align: 'right' })
+        .moveDown(0.5);
+
+    // Linha horizontal abaixo do cabeçalho da tabela
+    doc.moveTo(50, doc.y).lineTo(563, doc.y).stroke();
+}
+
 // Função para adicionar o rodapé (data/hora e numeração da página)
 function adicionarRodape(doc, paginaAtual, totalPaginas) {
     const dataHora = formatarDataHora();
@@ -144,41 +161,69 @@ export async function generateSEPAPdfReport(res, pagamentos) {
     doc.end();
 }
 
-// Função para gerar o PDF de conta corrente
-export async function generateContaCorrentePdfReport(res, processamentos, totalPago, totalNaoPago, socio_nr) {
-    const doc = new PDFDocument({ size: 'A4' });
+// Função principal para gerar o relatório em PDF de conta corrente
+export async function generateContaCorrentePdfReport(res, processamentos, totalPago, totalNaoPago, socio_nr, nome_socio, data_inicio, data_fim) {
+    const doc = new PDFDocument({ margin: 50, bufferPages: true });
 
-    // Definir o cabeçalho do relatório
-    doc.fontSize(16).text(`Relatório de Conta Corrente - Sócio ${socio_nr}`, { align: 'center' });
-    doc.moveDown();
-
-    doc.fontSize(12).text(`Período: ${new Date().toLocaleDateString()}`, { align: 'left' });
-    doc.moveDown();
-
-    // Tabela de Processamentos
-    doc.fontSize(12).text('Processamentos:');
-    doc.moveDown();
-
-    processamentos.forEach((processamento) => {
-        doc.text(`Processamento: ${processamento.proc_cod}`);
-        doc.text(`Data Documento: ${new Date(processamento.data_documento).toLocaleDateString()}`);
-        doc.text(`Valor Total do Documento: ${processamento.doc_valortotal} EUR`);
-        doc.text(`Valor Reembolso: ${processamento.valor_reembolso} EUR`);
-        doc.text(`Pago: ${processamento.pago ? 'Sim' : 'Não'}`);
-        if (processamento.pago) {
-            doc.text(`Data de Pagamento: ${new Date(processamento.data_pagamento).toLocaleDateString()}`);
-        }
-        doc.moveDown();
+    doc.on('error', (err) => {
+        console.error('Erro ao gerar o PDF:', err);
+        res.status(500).send('Erro ao gerar o relatório PDF.');
     });
 
-    // Totais
-    doc.moveDown();
-    doc.fontSize(12).text(`Total Pago: ${totalPago.toFixed(2)} EUR`);
-    doc.text(`Total Processado mas por Pagar: ${totalNaoPago.toFixed(2)} EUR`);
-    
-    // Finalizar o documento
-    doc.end();
-    
-    // Enviar o PDF gerado para o cliente
+    res.setHeader('Content-Disposition', 'attachment; filename="relatorio_conta_corrente.pdf"');
+    res.setHeader('Content-Type', 'application/pdf');
     doc.pipe(res);
+
+    // Adicionar o cabeçalho
+    adicionarCabecalho(doc, 'Relatório de Conta Corrente');
+
+    // Adicionar nome do sócio e período
+    doc.fontSize(12).text(`Sócio: ${socio_nr} - ${nome_socio}`, { align: 'left' });
+    doc.moveDown();
+    doc.text(`Período: ${new Date(data_inicio).toLocaleDateString()} até ${new Date(data_fim).toLocaleDateString()}`, { align: 'left' });
+    doc.moveDown(2);
+
+    // Adicionar cabeçalho da tabela
+    adicionarCabecalhoTabelaContaCorrente(doc);
+
+    let paginaAtual = 1;
+
+    // Adicionar os processamentos em formato de tabela
+    processamentos.forEach((processamento, index) => {
+        const currentY = doc.y;
+        const dataPagamento = processamento.pago ? new Date(processamento.data_pagamento).toLocaleDateString() : 'N/A';
+
+        doc.text(processamento.proc_cod, 50, currentY)
+            .text(new Date(processamento.data_documento).toLocaleDateString(), 150, currentY)
+            .text(formatarEmEuros(processamento.doc_valortotal), 250, currentY, { align: 'right' })
+            .text(formatarEmEuros(processamento.valor_reembolso), 350, currentY, { align: 'right' })
+            .text(processamento.pago ? 'Sim' : 'Não', 450, currentY, { align: 'right' })
+            .text(dataPagamento, 500, currentY, { align: 'right' });
+
+        doc.moveDown(0.5);
+
+        // Verificar se ultrapassou a página e adicionar nova página se necessário
+        if (doc.y > 650) {
+            adicionarRodape(doc, paginaAtual, null);
+            paginaAtual++;
+            doc.addPage();
+            adicionarCabecalho(doc, 'Relatório de Conta Corrente');
+            adicionarCabecalhoTabelaContaCorrente(doc);
+        }
+    });
+
+    // Adicionar totais
+    doc.moveDown(2);
+    doc.fontSize(12).fillColor('black')
+        .text(`Total Pago: ${formatarEmEuros(totalPago)}`, 50, doc.y, { align: 'left' })
+        .text(`Total Processado mas por Pagar: ${formatarEmEuros(totalNaoPago)}`, 50, doc.y, { align: 'left' });
+
+    // Adicionar rodapé final em todas as páginas
+    const pageRange = doc.bufferedPageRange();
+    for (let i = 0; i < pageRange.count; i++) {
+        doc.switchToPage(i);
+        adicionarRodape(doc, i + 1, pageRange.count);
+    }
+
+    doc.end();
 }
