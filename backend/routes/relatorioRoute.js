@@ -109,6 +109,10 @@ router.get('/generate-conta-corrente-report', async (req, res) => {
             return res.status(400).send('O número de sócio é obrigatório.');
         }
 
+        // Busca o nome do sócio na base de dados
+        const socio = await Socio.findOne({ socio_nr });
+        const nome_socio = socio ? socio.name : 'Nome não encontrado';
+
         const filtros = {
             socio_nr: socio_nr,
             createdAt: {
@@ -136,8 +140,11 @@ router.get('/generate-conta-corrente-report', async (req, res) => {
             }
         });
 
+        // obter o nome do sócio para passar para o pdf
+
         // Gerar o relatório PDF (usando a função geradora de PDF)
-        generateContaCorrentePdfReport(res, processamentos, totalPago, totalNaoPago, socio_nr);
+        //generateContaCorrentePdfReport(res, processamentos, totalPago, totalNaoPago, socio_nr); //versão com falta de parâmetros
+        await generateContaCorrentePdfReport(res, processamentos, totalPago, totalNaoPago, socio_nr, nome_socio, data_inicio, data_fim); 
 
     } catch (error) {
         console.error('Erro ao gerar o relatório de conta corrente:', error);
