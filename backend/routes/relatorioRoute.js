@@ -2,6 +2,7 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { generateSEPAPdfReport } from '../../utils/pdfGenerator.js';  // Importar a fun��o de gera��o de PDF
+import { fileURLToPath } from 'url'; // Para obter o caminho correto ao usar ES6 módulos
 import Pagamento from '../models/pagamento.js';
 import Socio from '../models/socios.js'; // Importar o modelo de sócio
 
@@ -63,6 +64,10 @@ router.get('/generate-email-report', async (req, res) => {
 
         // Gerar o nome do ficheiro
         const fileName = gerarNomeFicheiro();
+
+        // Resolver o caminho corretamente usando `fileURLToPath` e `import.meta.url`
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
         const filePath = path.join(__dirname, '../../exports', fileName);
 
         // Gravar o conteúdo num ficheiro .txt
