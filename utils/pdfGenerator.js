@@ -191,14 +191,15 @@ export async function generateContaCorrentePdfReport(res, processamentos, totalP
     // Adicionar os processamentos em formato de tabela
     processamentos.forEach((processamento, index) => {
         const currentY = doc.y;
+        const dataDocumento = processamento.data_documento ? new Date(processamento.data_documento).toLocaleDateString() : 'N/A';
         const dataPagamento = processamento.pago ? new Date(processamento.data_pagamento).toLocaleDateString() : 'N/A';
 
         doc.text(processamento.proc_cod, 50, currentY)
-            .text(new Date(processamento.data_documento).toLocaleDateString(), 150, currentY)
-            .text(formatarEmEuros(processamento.doc_valortotal), 250, currentY, { align: 'right' })
-            .text(formatarEmEuros(processamento.valor_reembolso), 350, currentY, { align: 'right' })
-            .text(processamento.pago ? 'Sim' : 'Não', 450, currentY, { align: 'right' })
-            .text(dataPagamento, 500, currentY, { align: 'right' });
+            .text(dataDocumento, 100, currentY)
+            .text(formatarEmEuros(processamento.doc_valortotal), 150, currentY, { align: 'right' })
+            .text(formatarEmEuros(processamento.valor_reembolso), 200, currentY, { align: 'right' })
+            .text(processamento.pago ? 'Sim' : 'Não', 250, currentY, { align: 'right' })
+            .text(dataPagamento, 300, currentY, { align: 'right' });
 
         doc.moveDown(0.5);
 
