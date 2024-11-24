@@ -49,7 +49,7 @@ router.get('/highest-number', async (req, res) => {
 // Nova rota para pesquisar sócios com filtros (número, nome e contribuinte)
 router.get('/search', async (req, res) => {
     try {
-        const { socio_nr, name, nif } = req.query; // Adicionado 'nif' na desestruturação
+        const { socio_nr, name, contribuinte } = req.query; // Adicionado 'contribuinte' na desestruturação
         let query = {};
 
         // Adicionar filtro por número de sócio (números que começam com o valor inserido)
@@ -64,8 +64,8 @@ router.get('/search', async (req, res) => {
         }
 
         // Adicionar filtro por número de contribuinte (NIF)
-        if (nif) {
-            query.nif = { $regex: '^' + nif }; // Busca todos os NIFs que começam com "nif"
+        if (contribuinte) {
+            query.contribuinte = { $regex: '^' + contribuinte }; // Busca todos os NIFs que começam com "nif"
         }
 
         // Buscar sócios de acordo com os filtros
