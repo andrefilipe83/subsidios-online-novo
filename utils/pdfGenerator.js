@@ -59,11 +59,11 @@ function adicionarCabecalhoTabelaContaCorrente(doc) {
     doc.fontSize(10)
         .fillColor('black')
         .text('Código', 50, yPosition)
-        .text('Data Documento', 150, yPosition)
-        .text('Valor Total', 250, yPosition, { align: 'right' })
-        .text('Valor Reembolso', 350, yPosition, { align: 'right' })
-        .text('Pago', 450, yPosition, { align: 'right' })
-        .text('Data de Pagamento', 500, yPosition, { align: 'right' })
+        .text('Data Documento', 100, yPosition)
+        .text('Valor Total', 150, yPosition, { width: 45, align: 'right' })
+        .text('Valor Reembolso', 200, yPosition, { width: 45, align: 'right' })
+        .text('Pago', 250, yPosition, { width: 45, align: 'right' })
+        .text('Data de Pagamento', 300, yPosition, { align: 'right' })
         .moveDown(0.5);
 
     // Linha horizontal abaixo do cabeçalho da tabela
