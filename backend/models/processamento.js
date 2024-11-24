@@ -52,7 +52,7 @@ const processamentoSchema = new Schema({
         required: true,
         default: 0,
     },
-    data_documento: { // Novo campo para a data do documento
+    data_doc: { // Novo campo para a data do documento
         type: Date,
         required: false,
     },
