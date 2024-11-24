@@ -30,7 +30,7 @@ router.post('/', async (req, res) => {
             socio_familiar,
             doc_nr,
             doc_valortotal,
-            data_doc, // Gravar a data do documento
+            data_doc: new Date(data_doc), // Gravar a data do documento
             //data_documento: new Date(data_documento),
             tipo_processamento, // Gravar o tipo de processamento
             login_usuario, // Gravar o login do usuário
