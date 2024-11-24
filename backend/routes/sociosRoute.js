@@ -46,10 +46,10 @@ router.get('/highest-number', async (req, res) => {
     }
 });
 
-// Nova rota para pesquisar sócios com filtros (número e nome)
+// Nova rota para pesquisar sócios com filtros (número, nome e contribuinte)
 router.get('/search', async (req, res) => {
     try {
-        const { socio_nr, name } = req.query;
+        const { socio_nr, name, nif } = req.query; // Adicionado 'nif' na desestruturação
         let query = {};
 
         // Adicionar filtro por número de sócio (números que começam com o valor inserido)
@@ -63,9 +63,14 @@ router.get('/search', async (req, res) => {
             query.name = { $regex: new RegExp(removeAcentos(normalizedQueryName), 'i') }; // Ignora maiúsculas, minúsculas e acentos
         }
 
+        // Adicionar filtro por número de contribuinte (NIF)
+        if (nif) {
+            query.nif = { $regex: '^' + nif }; // Busca todos os NIFs que começam com "nif"
+        }
+
         // Buscar sócios de acordo com os filtros
         const socios = await Socio.find(query);
-        
+
         // Retornar os resultados
         res.status(200).send({ socios });
     } catch (error) {
@@ -73,6 +78,7 @@ router.get('/search', async (req, res) => {
         res.status(500).send(error);
     }
 });
+
 
 // Obter um sócio por socio_nr
 router.get('/:socio_nr', async (req, res) => {
