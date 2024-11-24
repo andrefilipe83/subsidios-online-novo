@@ -13,7 +13,7 @@ router.post('/', async (req, res) => {
         
         console.log('Dados recebidos no backend:', req.body);  // Verifica o conteúdo completo de req.body
 
-        const { socio_nr, socio_familiar, doc_nr, doc_valortotal, adse_codigo, ss_comp_cod, valor_unit, quantidade, tipo_processamento, login_usuario, data_documento } = req.body;
+        const { socio_nr, socio_familiar, doc_nr, doc_valortotal, adse_codigo, ss_comp_cod, valor_unit, quantidade, tipo_processamento, login_usuario, data_doc } = req.body;
 
         console.log('Tipo de processamento recebido:', tipo_processamento); // Verifica se o campo está corretamente populado
 
@@ -30,7 +30,7 @@ router.post('/', async (req, res) => {
             socio_familiar,
             doc_nr,
             doc_valortotal,
-            data_documento, // Gravar a data do documento
+            data_doc, // Gravar a data do documento
             //data_documento: new Date(data_documento),
             tipo_processamento, // Gravar o tipo de processamento
             login_usuario, // Gravar o login do usuário
