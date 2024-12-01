@@ -256,7 +256,9 @@ async function enviarEmailPagamento(email, processamento) {
         auth: {
             user: process.env.EMAIL_USER || "info@sstmmn.com",
             pass: process.env.EMAIL_PASSWORD || "CM]jD3anhDU"
-        }
+        },
+        debug: true, // Ativar o modo de depuração
+        logger: true, // Ativar o modo de log
     });
 
     // Obter dados adicionais necessários
