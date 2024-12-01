@@ -10,6 +10,57 @@ const router = express.Router();
 // Criar um novo registro Processamento
 router.post('/', async (req, res) => {
     try {
+        console.log('Dados recebidos no backend:', req.body); // Verifica o conteúdo completo de req.body
+
+        const { socio_nr, socio_familiar, doc_nr, doc_valortotal, adse_codigo, ss_comp_cod, valor_unit, quantidade, tipo_processamento, login_usuario, data_doc } = req.body;
+
+        console.log('Tipo de processamento recebido:', tipo_processamento); // Verifica se o campo está corretamente populado
+
+        const processamento = new Processamento({
+            socio_nr,
+            socio_familiar,
+            doc_nr,
+            doc_valortotal,
+            data_doc, // Gravar a data do documento
+            tipo_processamento, // Gravar o tipo de processamento
+            login_usuario, // Gravar o login do usuário
+            linhas: [
+                {
+                    adse_codigo,
+                    ss_comp_cod,
+                    valor_unit,
+                    quantidade,
+                    reembolso: 0 // Inicialmente, o reembolso pode ser calculado mais tarde
+                }
+            ],
+            valor_reembolso: 0, // Inicialmente definido como 0
+        });
+
+        await processamento.save();
+
+        // Adicionar estas linhas após salvar o processamento
+        const socio = await Socio.findOne({ socio_nr: socio_nr });
+        if (socio && socio.email) {
+            try {
+                await enviarEmailPagamento(socio.email, processamento);
+                console.log('E-mail enviado com sucesso para', socio.email);
+            } catch (emailError) {
+                console.error('Erro ao enviar e-mail:', emailError);
+                // Não impede o sucesso da operação se o e-mail falhar
+            }
+        }
+
+        res.status(201).send(processamento);
+    } catch (error) {
+        console.error('Erro ao criar processamento:', error);
+        res.status(400).send(error);
+    }
+});
+
+
+
+/*router.post('/', async (req, res) => {
+    try {
         
         console.log('Dados recebidos no backend:', req.body);  // Verifica o conteúdo completo de req.body
 
@@ -51,7 +102,7 @@ router.post('/', async (req, res) => {
     } catch (error) {
         res.status(400).send(error);
     }
-});
+});*/
 
 
 // rota para pesquisa de processamentos
