@@ -238,7 +238,7 @@ async function enviarEmailPagamento(email, processamento) {
     }
 }
 
-
+export default router;
 
 /*
 async function enviarEmailPagamento(email, processamento) {
@@ -277,6 +277,4 @@ async function enviarEmailPagamento(email, processamento) {
 
     console.log("Email enviado: %s", info.messageId);
     console.log("URL de visualização: %s", nodemailer.getTestMessageUrl(info));
-}
-
-export default router;*/
+    */
