@@ -61,7 +61,7 @@ const socioSchema = new Schema({
     },
     type: {
         type: String,
-        enum: ['Trabalhador', 'Cônjuge', 'Descendente'],
+        enum: ['Trabalhador', 'Cônjuge', 'Descendente', 'Aposentado', 'Viúvo'],
         required: true,
     },
     entidade: {
