@@ -198,6 +198,50 @@ async function gerarNovoCodPagamento() {
 
 
 async function enviarEmailPagamento(email, processamento) {
+    let transporter = nodemailer.createTransport({
+        host: "sstmmn.com",
+        port: 465,
+        secure: true, // true para porta 465
+        auth: {
+            user: process.env.EMAIL_USER || "info@sstmmn.com",
+            pass: process.env.EMAIL_PASSWORD || "CM]jD3anhDU"
+        }
+    });
+
+    // Obter dados adicionais necessários
+    const socio = await Socio.findOne({ socio_nr: processamento.socio_nr });
+    const ssComp = await CompartSS.findOne({ ss_comp_cod: processamento.linhas[0].ss_comp_cod });
+
+    try {
+        let info = await transporter.sendMail({
+            from: '"Serviços Sociais" <info@sstmmn.com>',
+            to: email,
+            subject: "Informação de Processamento de Reembolso",
+            html: `
+                <p>Caro Sócio n.º ${processamento.socio_nr || '[número de sócio]'} - ${socio ? socio.name : '[nome do sócio]'},</p>
+                
+                <p>Serve o presente para informar que, relativamente à despesa ${ssComp ? ssComp.ss_comp_nome : '[Descrição do código dos Serviços Sociais]'}, 
+                no valor de ${processamento.doc_valortotal || '[valor da despesa]'}€, constante do documento n.º ${processamento.doc_nr || '[número da fatura]'} 
+                e valor de ${processamento.doc_valortotal || '[valor da despesa]'}€, foi processado o reembolso de ${processamento.valor_reembolso || '[valor do reembolso dos Serviços Sociais]'}€, 
+                cujo pagamento por transferência bancária se prevê para os próximos dias.</p>
+                
+                <p>Com os melhores cumprimentos,</p>
+                <p>Os Serviços Sociais dos Trabalhadores do Município de Montemor-o-Novo</p>
+            `
+        });
+
+        console.log("Email enviado com sucesso para", email);
+        return info;
+    } catch (error) {
+        console.error("Erro ao enviar email:", error);
+        throw error;
+    }
+}
+
+
+
+/*
+async function enviarEmailPagamento(email, processamento) {
     let testAccount = await nodemailer.createTestAccount();
 
     let transporter = nodemailer.createTransport({
@@ -235,4 +279,4 @@ async function enviarEmailPagamento(email, processamento) {
     console.log("URL de visualização: %s", nodemailer.getTestMessageUrl(info));
 }
 
-export default router;
+export default router;*/
