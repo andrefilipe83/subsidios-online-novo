@@ -197,15 +197,14 @@ async function gerarNovoCodPagamento() {
 
 
 async function enviarEmailPagamento(email, processamento) {
-    let testAccount = await nodemailer.createTestAccount();
-
+    // Configurar o transporte para envio real
     let transporter = nodemailer.createTransport({
-        host: "smtp.ethereal.email",
-        port: 587,
-        secure: false,
+        host: "mail.andrealface.com", // SMTP host fornecido
+        port: 465, // Porta SMTP fornecida
+        secure: true, // Utilizar TLS/SSL para conexões seguras
         auth: {
-            user: testAccount.user,
-            pass: testAccount.pass,
+            user: "teste@andrealface.com", // Utilizador fornecido
+            pass: "Teste987!12!" // Palavra-passe fornecida
         },
     });
 
@@ -213,6 +212,7 @@ async function enviarEmailPagamento(email, processamento) {
     const socio = await Socio.findOne({ socio_nr: processamento.socio_nr });
     const ssComp = await CompartSS.findOne({ ss_comp_cod: processamento.linhas[0].ss_comp_cod });
 
+    // Configurar o e-mail
     let info = await transporter.sendMail({
         from: '"Serviços Sociais" <servicos.sociais@montemornovo.pt>',
         to: email,
@@ -233,5 +233,6 @@ async function enviarEmailPagamento(email, processamento) {
     console.log("Email enviado: %s", info.messageId);
     console.log("URL de visualização: %s", nodemailer.getTestMessageUrl(info));
 }
+
 
 export default router;
