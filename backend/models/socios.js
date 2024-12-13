@@ -1,6 +1,37 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
+const agregadoSchema = new Schema({
+    name: {
+        type: String,
+        required: true,
+    },
+    birthday: {
+        type: Date,
+        required: true,
+    },
+    status: {
+        type: String,
+        enum: ['Ativo', 'Não Ativo'],
+        default: 'Ativo',
+    },
+    type: {
+        type: String,
+        enum: ['Cônjuge', 'Descendente'],
+        required: true,
+    },
+    contribuinte: { 
+        type: String,
+        required: false,
+    },
+    health_system: { 
+        type: String,
+        enum: ['ADSE', 'Seg. Social'],
+        default: 'Seg. Social',
+        required: false,
+    },
+});
+
 const socioSchema = new Schema({
     name: {
         type: String,
@@ -8,8 +39,8 @@ const socioSchema = new Schema({
     },
     email: {
         type: String,
-        required: true,
-        unique: true,
+        required: false, //não pode ser obrigatório porque há sócios que não têm
+        unique: false, //o mesmo email pode servir para mais do que um sócio
     },
     birthday: {
         type: Date,
@@ -30,13 +61,15 @@ const socioSchema = new Schema({
     },
     type: {
         type: String,
-        enum: ['Trabalhador', 'Cônjuge', 'Descendente'],
+        enum: ['Trabalhador', 'Cônjuge', 'Descendente', 'Aposentado', 'Viúvo'],
         required: true,
     },
-    // effectiveMemberId: { 
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     default: () => new mongoose.Types.ObjectId() 
-    // },
+    entidade: {
+        type: String,
+        enum: ['Câmara Municipal', 'JF Cabrela', 'JF Ciborro', 'JF Cortiçadas de Lavre e Lavre', 'JF Foros de Vale de Figueira', 'JF NS Vila, NS Bispo e Silveiras', 'JF Santiago do Escoural', 'JF São Cristóvão', 'Serviços Sociais'],
+        default: 'Câmara Municipal',
+        required: false, //depois temos de tornar obrigatório mais para a frente
+    },
     socio_nr: { 
         type: String,
         required: true,
@@ -82,6 +115,10 @@ const socioSchema = new Schema({
     },
     conta_SNC: { 
         type: String,
+        required: false,
+    },
+    agregado: {
+        type: [agregadoSchema],
         required: false,
     },
 });

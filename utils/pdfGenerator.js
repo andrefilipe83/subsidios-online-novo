@@ -53,6 +53,23 @@ function adicionarCabecalhoTabela(doc) {
     doc.moveTo(50, doc.y).lineTo(563, doc.y).stroke();
 }
 
+// Função para adicionar o cabeçalho da tabela
+function adicionarCabecalhoTabelaContaCorrente(doc) {
+    const yPosition = doc.y;
+    doc.fontSize(10)
+        .fillColor('black')
+        .text('Nr. Proc.', 50, yPosition)
+        .text('Data Doc.', 100, yPosition)
+        .text('V. Total', 150, yPosition, { width: 45, align: 'right' })
+        .text('V. Reembolso', 200, yPosition, { width: 45, align: 'right' })
+        .text('Pago', 250, yPosition, { width: 45, align: 'right' })
+        .text('Data de Pag.', 300, yPosition, { align: 'right' })
+        .moveDown(0.5);
+
+    // Linha horizontal abaixo do cabeçalho da tabela
+    doc.moveTo(50, doc.y).lineTo(563, doc.y).stroke();
+}
+
 // Função para adicionar o rodapé (data/hora e numeração da página)
 function adicionarRodape(doc, paginaAtual, totalPaginas) {
     const dataHora = formatarDataHora();
@@ -140,6 +157,74 @@ export async function generateSEPAPdfReport(res, pagamentos) {
     }
 
     adicionarRodape(doc, pageRange.count, null);
+
+    doc.end();
+}
+
+// Função principal para gerar o relatório em PDF de conta corrente
+export async function generateContaCorrentePdfReport(res, processamentos, totalPago, totalNaoPago, socio_nr, nome_socio, data_inicio, data_fim) {
+    const doc = new PDFDocument({ margin: 50, bufferPages: true });
+
+    doc.on('error', (err) => {
+        console.error('Erro ao gerar o PDF:', err);
+        res.status(500).send('Erro ao gerar o relatório PDF.');
+    });
+
+    res.setHeader('Content-Disposition', 'attachment; filename="relatorio_conta_corrente.pdf"');
+    res.setHeader('Content-Type', 'application/pdf');
+    doc.pipe(res);
+
+    // Adicionar o cabeçalho
+    adicionarCabecalho(doc, 'Relatório de Conta Corrente');
+
+    // Adicionar nome do sócio e período
+    doc.fontSize(12).text(`Sócio: ${socio_nr} - ${nome_socio}`, { align: 'left' });
+    doc.moveDown();
+    doc.text(`Período: ${new Date(data_inicio).toLocaleDateString()} até ${new Date(data_fim).toLocaleDateString()}`, { align: 'left' });
+    doc.moveDown(2);
+
+    // Adicionar cabeçalho da tabela
+    adicionarCabecalhoTabelaContaCorrente(doc);
+
+    let paginaAtual = 1;
+
+    // Adicionar os processamentos em formato de tabela
+    processamentos.forEach((processamento, index) => {
+        const currentY = doc.y;
+        const dataDocumento = processamento.data_documento ? new Date(processamento.data_documento).toLocaleDateString() : 'N/A';
+        const dataPagamento = processamento.pago ? new Date(processamento.data_pagamento).toLocaleDateString() : 'N/A';
+
+        doc.text(processamento.proc_cod, 50, currentY)
+            .text(dataDocumento, 100, currentY)
+            .text(formatarEmEuros(processamento.doc_valortotal), 150, currentY, { width: 45, align: 'right' })
+            .text(formatarEmEuros(processamento.valor_reembolso), 200, currentY, { width: 45, align: 'right' })
+            .text(processamento.pago ? 'Sim' : 'Não', 250, currentY, { width: 45, align: 'right' })
+            .text(dataPagamento, 300, currentY, { align: 'right' });
+
+        doc.moveDown(0.5);
+
+        // Verificar se ultrapassou a página e adicionar nova página se necessário
+        if (doc.y > 650) {
+            adicionarRodape(doc, paginaAtual, null);
+            paginaAtual++;
+            doc.addPage();
+            adicionarCabecalho(doc, 'Relatório de Conta Corrente');
+            adicionarCabecalhoTabelaContaCorrente(doc);
+        }
+    });
+
+    // Adicionar totais
+    doc.moveDown(2);
+    doc.fontSize(12).fillColor('black')
+        .text(`Total Pago: ${formatarEmEuros(totalPago)}`, 50, doc.y, { align: 'left' })
+        .text(`Total Processado mas por Pagar: ${formatarEmEuros(totalNaoPago)}`, 50, doc.y, { align: 'left' });
+
+    // Adicionar rodapé final em todas as páginas
+    const pageRange = doc.bufferedPageRange();
+    for (let i = 0; i < pageRange.count; i++) {
+        doc.switchToPage(i);
+        adicionarRodape(doc, i + 1, pageRange.count);
+    }
 
     doc.end();
 }

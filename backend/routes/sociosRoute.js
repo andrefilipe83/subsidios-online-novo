@@ -46,10 +46,10 @@ router.get('/highest-number', async (req, res) => {
     }
 });
 
-// Nova rota para pesquisar sócios com filtros (número e nome)
+// Nova rota para pesquisar sócios com filtros (número, nome e contribuinte)
 router.get('/search', async (req, res) => {
     try {
-        const { socio_nr, name } = req.query;
+        const { socio_nr, name, contribuinte } = req.query; // Adicionado 'contribuinte' na desestruturação
         let query = {};
 
         // Adicionar filtro por número de sócio (números que começam com o valor inserido)
@@ -63,9 +63,14 @@ router.get('/search', async (req, res) => {
             query.name = { $regex: new RegExp(removeAcentos(normalizedQueryName), 'i') }; // Ignora maiúsculas, minúsculas e acentos
         }
 
+        // Adicionar filtro por número de contribuinte (NIF)
+        if (contribuinte) {
+            query.contribuinte = { $regex: '^' + contribuinte }; // Busca todos os NIFs que começam com "nif"
+        }
+
         // Buscar sócios de acordo com os filtros
         const socios = await Socio.find(query);
-        
+
         // Retornar os resultados
         res.status(200).send({ socios });
     } catch (error) {
@@ -73,6 +78,7 @@ router.get('/search', async (req, res) => {
         res.status(500).send(error);
     }
 });
+
 
 // Obter um sócio por socio_nr
 router.get('/:socio_nr', async (req, res) => {
@@ -92,13 +98,20 @@ router.get('/:socio_nr', async (req, res) => {
 router.patch('/:id', async (req, res) => {
     try {
         const socio = await Socio.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
+            new: true, //teste para a atualização
             runValidators: true
         });
+        console.log('socio capturado:', socio);
         if (!socio) {
+            console.log('socio a atualizar:', socio);
             return res.status(404).send();
         }
+        console.log('id do socio capturado antes de gravar:', socio._id);
+        console.log('nome do socio capturado antes de gravar:', socio.name);
         res.status(200).send(socio);
+        console.log('id do socio capturado depois de gravar:', socio._id);
+        console.log('nome do socio capturado depois de gravar:', socio.name);
+        console.log('não gravei nada');
     } catch (error) {
         console.error('Erro ao atualizar sócio:', error);
         res.status(400).send(error);
