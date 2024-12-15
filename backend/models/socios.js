@@ -61,8 +61,14 @@ const socioSchema = new Schema({
     },
     type: {
         type: String,
-        enum: ['Trabalhador', 'Cônjuge', 'Descendente'],
+        enum: ['Trabalhador', 'Cônjuge', 'Descendente', 'Aposentado', 'Viúvo'],
         required: true,
+    },
+    entidade: {
+        type: String,
+        enum: ['Câmara Municipal', 'JF Cabrela', 'JF Ciborro', 'JF Cortiçadas de Lavre e Lavre', 'JF Foros de Vale de Figueira', 'JF NS Vila, NS Bispo e Silveiras', 'JF Santiago do Escoural', 'JF São Cristóvão', 'Serviços Sociais'],
+        default: 'Câmara Municipal',
+        required: false, //depois temos de tornar obrigatório mais para a frente
     },
     socio_nr: { 
         type: String,
