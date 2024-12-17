@@ -409,7 +409,7 @@ async function enviarEmailPagamento(email, processamento) {
 
         // Preparar e enviar o email
         const mailOptions = {
-            from: '"Serviços Sociais" <servicos.sociais@montemornovo.pt>',
+            from: '"Serviços Sociais" <teste@andrealface.com>',
             to: email,
             subject: "Informação de Processamento de Reembolso",
             html: `
