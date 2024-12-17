@@ -368,12 +368,15 @@ router.post('/', async (req, res) => {
 
 // Função para enviar email
 async function enviarEmailPagamento(email, processamento) {
+    console.log('=== INÍCIO DO ENVIO DE EMAIL ===');
+    console.log('Email destinatário:', email);
+    console.log('Dados do processamento:', processamento);
+
     if (!email) {
+        console.error('Email não fornecido');
         throw new Error('Email não fornecido');
     }
 
-    console.log("Iniciando configuração do transport para email:", email);
-    
     const transporter = nodemailer.createTransport({
         host: "mail.andrealface.com",
         port: 465,
@@ -386,36 +389,35 @@ async function enviarEmailPagamento(email, processamento) {
             rejectUnauthorized: false
         },
         debug: true,
-        logger: true // Habilita logging detalhado
+        logger: true
     });
 
     try {
         // Verificar conexão
-        console.log("Verificando conexão SMTP...");
+        console.log('Verificando conexão SMTP...');
         await transporter.verify();
-        console.log("Conexão SMTP verificada com sucesso");
+        console.log('Conexão SMTP verificada');
 
-        // Buscar dados necessários de forma paralela
-        console.log("Buscando dados complementares...");
+        // Buscar dados complementares
+        console.log('Buscando dados do sócio e compartimento...');
         const [socio, ssComp] = await Promise.all([
             Socio.findOne({ socio_nr: processamento.socio_nr }),
             CompartSS.findOne({ ss_comp_cod: processamento.linhas[0].ss_comp_cod })
         ]);
 
-        if (!socio) throw new Error(`Sócio não encontrado: ${processamento.socio_nr}`);
-        if (!ssComp) throw new Error(`Compartimento SS não encontrado: ${processamento.linhas[0].ss_comp_cod}`);
+        console.log('Dados encontrados:', {
+            socio: socio ? 'encontrado' : 'não encontrado',
+            ssComp: ssComp ? 'encontrado' : 'não encontrado'
+        });
 
-        console.log("Dados complementares encontrados:", { socio: socio._id, ssComp: ssComp.ss_comp_cod });
-
-        // Preparar e enviar o email
         const mailOptions = {
             from: '"Serviços Sociais" <teste@andrealface.com>',
             to: email,
             subject: "Informação de Processamento de Reembolso",
             html: `
-                <p>Caro Sócio n.º ${processamento.socio_nr} - ${socio.name},</p>
+                <p>Caro Sócio n.º ${processamento.socio_nr} - ${socio?.name || '[nome não encontrado]'},</p>
                 
-                <p>Serve o presente para informar que, quanto à despesa ${ssComp.ss_comp_nome}, 
+                <p>Serve o presente para informar que, quanto à despesa ${ssComp?.ss_comp_nome || '[descrição não encontrada]'}, 
                 no valor de ${processamento.doc_valortotal}€, constante do documento n.º ${processamento.doc_nr}, 
                 foi processado o reembolso de ${processamento.valor_reembolso}€, 
                 cujo pagamento por transferência bancária se prevê para os próximos dias.</p>
@@ -425,14 +427,15 @@ async function enviarEmailPagamento(email, processamento) {
             `
         };
 
-        console.log("Enviando email com as opções:", { to: mailOptions.to, subject: mailOptions.subject });
+        console.log('Enviando email...');
         const info = await transporter.sendMail(mailOptions);
-        console.log("Email enviado com sucesso. ID:", info.messageId);
+        console.log('Email enviado com sucesso. ID:', info.messageId);
+        console.log('=== FIM DO ENVIO DE EMAIL ===');
         
         return info;
     } catch (error) {
-        console.error("Erro durante o processo de envio de email:", error);
-        throw error; // Re-throw para tratamento adequado no caller
+        console.error('Erro no envio do email:', error);
+        throw error;
     }
 }
 
