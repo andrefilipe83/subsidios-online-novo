@@ -41,13 +41,15 @@ router.post('/', async (req, res) => {
         // Adicionar estas linhas após salvar o processamento
         const socio = await Socio.findOne({ socio_nr: socio_nr });
         if (socio && socio.email) {
+            console.log("Email encontrado para o sócio:", socio.email);
             try {
                 await enviarEmailPagamento(socio.email, processamento);
                 console.log('E-mail enviado com sucesso para', socio.email);
             } catch (emailError) {
                 console.error('Erro ao enviar e-mail:', emailError);
-                // Não impede o sucesso da operação se o e-mail falhar
             }
+        } else {
+            console.warn("E-mail não encontrado para o sócio:", socio_nr);
         }
 
         res.status(201).send(processamento);
