@@ -59,52 +59,6 @@ router.post('/', async (req, res) => {
 
 
 
-/*router.post('/', async (req, res) => {
-    try {
-        
-        console.log('Dados recebidos no backend:', req.body);  // Verifica o conteúdo completo de req.body
-
-        const { socio_nr, socio_familiar, doc_nr, doc_valortotal, adse_codigo, ss_comp_cod, valor_unit, quantidade, tipo_processamento, login_usuario, data_doc } = req.body;
-
-        console.log('Tipo de processamento recebido:', tipo_processamento); // Verifica se o campo está corretamente populado
-
-        
-        //const { socio_nr, socio_familiar, doc_nr, doc_valortotal, adse_codigo, ss_comp_cod, valor_unit, quantidade, tipo_processamento, login_usuario, data_documento } = req.body;
-
-        // Garantir que o tipo de processamento e login do usuário estão presentes
-        //if (!tipo_processamento || !login_usuario) {
-        //    return res.status(400).send({ error: 'Tipo de processamento e login do usuário são obrigatórios.' });
-        //}
-
-        const processamento = new Processamento({
-            socio_nr,
-            socio_familiar,
-            doc_nr,
-            doc_valortotal,
-            data_doc, // Gravar a data do documento
-            //data_documento: new Date(data_documento),
-            tipo_processamento, // Gravar o tipo de processamento
-            login_usuario, // Gravar o login do usuário
-            linhas: [
-                {
-                    adse_codigo,
-                    ss_comp_cod,
-                    valor_unit,
-                    quantidade,
-                    reembolso: 0 // Inicialmente, o reembolso pode ser calculado mais tarde
-                }
-            ],
-            valor_reembolso: 0, // Inicialmente definido como 0
-        });
-
-        await processamento.save();
-        res.status(201).send(processamento);
-    } catch (error) {
-        res.status(400).send(error);
-    }
-});*/
-
-
 // rota para pesquisa de processamentos
 router.get('/pesquisa', async (req, res) => {
     try {
@@ -249,42 +203,44 @@ async function gerarNovoCodPagamento() {
 
 
 async function enviarEmailPagamento(email, processamento) {
-    // Configurar o transporte para envio real
     let transporter = nodemailer.createTransport({
-        host: "mail.andrealface.com", // SMTP host fornecido
-        port: 465, // Porta SMTP fornecida
-        secure: true, // Utilizar TLS/SSL para conexões seguras
+        host: "mail.andrealface.com", // Servidor SMTP fornecido
+        port: 465, // Porta SSL/TLS
+        secure: true, // Utilizar SSL/TLS
         auth: {
-            user: "teste@andrealface.com", // Utilizador fornecido
-            pass: "Teste987!12!" // Palavra-passe fornecida
+            user: "teste@andrealface.com", // Utilizador SMTP
+            pass: "Teste987!12!" // Palavra-passe SMTP
         },
+        tls: {
+            rejectUnauthorized: false // Ignora a validação do certificado SSL
+        }
     });
 
-    // Obter dados adicionais necessários
-    const socio = await Socio.findOne({ socio_nr: processamento.socio_nr });
-    const ssComp = await CompartSS.findOne({ ss_comp_cod: processamento.linhas[0].ss_comp_cod });
+    try {
+        // Obter dados adicionais necessários
+        const socio = await Socio.findOne({ socio_nr: processamento.socio_nr });
+        const ssComp = await CompartSS.findOne({ ss_comp_cod: processamento.linhas[0].ss_comp_cod });
 
-    // Configurar o e-mail
-    let info = await transporter.sendMail({
-        from: '"Serviços Sociais" <servicos.sociais@montemornovo.pt>',
-        to: email,
-        subject: "Informação de Processamento de Reembolso",
-        html: `
-            <p>Caro Sócio n.º ${processamento.socio_nr || '[número de sócio]'} - ${socio ? socio.name : '[nome do sócio]'},</p>
-            
-            <p>Serve o presente para informar que, quanto à despesa ${ssComp ? ssComp.ss_comp_nome : '[Descrição do código dos Serviços Sociais]'}, 
-            no valor de ${processamento.doc_valortotal || '[valor da despesa]'}€, constante do documento n.º ${processamento.doc_nr || '[número da fatura]'} 
-            e valor de ${processamento.doc_valortotal || '[valor da despesa]'}€, foi processado o reembolso de ${processamento.valor_reembolso || '[valor do reembolso dos Serviços Sociais]'}€, 
-            cujo pagamento por transferência bancária se prevê para os próximos dias.</p>
-            
-            <p>Com os melhores cumprimentos,</p>
-            <p>Os Serviços Sociais dos Trabalhadores do Município de Montemor-o-Novo</p>
-        `
-    });
+        // Configurar e enviar o e-mail
+        let info = await transporter.sendMail({
+            from: '"Serviços Sociais" <servicos.sociais@montemornovo.pt>',
+            to: email,
+            subject: "Informação de Processamento de Reembolso",
+            html: `
+                <p>Caro Sócio n.º ${processamento.socio_nr || '[número de sócio]'} - ${socio ? socio.name : '[nome do sócio]'},</p>
+                <p>Quanto à despesa ${ssComp ? ssComp.ss_comp_nome : '[Descrição do código dos Serviços Sociais]'}, 
+                no valor de ${processamento.doc_valortotal || '[valor da despesa]'}€, documento n.º ${processamento.doc_nr || '[número da fatura]'}, 
+                informamos que foi processado o reembolso de ${processamento.valor_reembolso || '[valor do reembolso]'}€.</p>
+                <p>O pagamento será efetuado nos próximos dias.</p>
+                <p>Com os melhores cumprimentos,</p>
+                <p>Os Serviços Sociais dos Trabalhadores do Município de Montemor-o-Novo</p>
+            `
+        });
 
-    console.log("Email enviado: %s", info.messageId);
-    console.log("URL de visualização: %s", nodemailer.getTestMessageUrl(info));
-
+        console.log("Email enviado com sucesso: %s", info.messageId);
+    } catch (error) {
+        console.error("Erro ao enviar email:", error.message);
+    }
 }
 
 export default router;
