@@ -203,6 +203,11 @@ async function gerarNovoCodPagamento() {
 
 
 async function enviarEmailPagamento(email, processamento) {
+    console.log("Iniciando envio de email...");
+    console.log("Detalhes do sócio:", email);
+    console.log("Dados do processamento:", processamento);
+
+    // Configuração do transporte SMTP
     let transporter = nodemailer.createTransport({
         host: "mail.andrealface.com", // Servidor SMTP fornecido
         port: 465, // Porta SSL/TLS
@@ -217,9 +222,18 @@ async function enviarEmailPagamento(email, processamento) {
     });
 
     try {
+        // Testar a conexão com o servidor SMTP
+        console.log("Testando a conexão com o servidor SMTP...");
+        await transporter.verify();
+        console.log("Conexão com o servidor SMTP bem-sucedida!");
+
         // Obter dados adicionais necessários
+        console.log("Buscando informações adicionais do sócio...");
         const socio = await Socio.findOne({ socio_nr: processamento.socio_nr });
         const ssComp = await CompartSS.findOne({ ss_comp_cod: processamento.linhas[0].ss_comp_cod });
+
+        console.log("Dados do sócio:", socio);
+        console.log("Dados dos Serviços Sociais:", ssComp);
 
         // Configurar e enviar o e-mail
         let info = await transporter.sendMail({
@@ -238,8 +252,13 @@ async function enviarEmailPagamento(email, processamento) {
         });
 
         console.log("Email enviado com sucesso: %s", info.messageId);
+        console.log("Detalhes do email enviado:", info);
+
     } catch (error) {
         console.error("Erro ao enviar email:", error.message);
+        console.error("Detalhes do erro:", error);
+        // Rejeita o erro explicitamente para análise adicional
+        throw error;
     }
 }
 
