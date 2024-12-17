@@ -7,237 +7,25 @@ import nodemailer from 'nodemailer';
 
 const router = express.Router();
 
-// Criar um novo registro Processamento
-router.post('/', async (req, res) => {
-    try {
-        console.log('Dados recebidos no backend:', req.body); // Verifica o conteúdo completo de req.body
-
-        const { socio_nr, socio_familiar, doc_nr, doc_valortotal, adse_codigo, ss_comp_cod, valor_unit, quantidade, tipo_processamento, login_usuario, data_doc } = req.body;
-
-        console.log('Tipo de processamento recebido:', tipo_processamento); // Verifica se o campo está corretamente populado
-
-        const processamento = new Processamento({
-            socio_nr,
-            socio_familiar,
-            doc_nr,
-            doc_valortotal,
-            data_doc, // Gravar a data do documento
-            tipo_processamento, // Gravar o tipo de processamento
-            login_usuario, // Gravar o login do usuário
-            linhas: [
-                {
-                    adse_codigo,
-                    ss_comp_cod,
-                    valor_unit,
-                    quantidade,
-                    reembolso: 0 // Inicialmente, o reembolso pode ser calculado mais tarde
-                }
-            ],
-            valor_reembolso: 0, // Inicialmente definido como 0
-        });
-
-        await processamento.save();
-
-        // Adicionar estas linhas após salvar o processamento
-        const socio = await Socio.findOne({ socio_nr: socio_nr });
-        if (socio && socio.email) {
-            console.log("Email encontrado para o sócio:", socio.email);
-            try {
-                await enviarEmailPagamento(socio.email, processamento);
-                console.log('E-mail enviado com sucesso para', socio.email);
-            } catch (emailError) {
-                console.error('Erro ao enviar e-mail:', emailError);
-            }
-        } else {
-            console.warn("E-mail não encontrado para o sócio:", socio_nr);
-        }
-
-        res.status(201).send(processamento);
-    } catch (error) {
-        console.error('Erro ao criar processamento:', error);
-        res.status(400).send(error);
-    }
-});
-
-
-
-// rota para pesquisa de processamentos
-router.get('/pesquisa', async (req, res) => {
-    try {
-        const { proc_cod, data_inicio, data_fim, socio_nr, tipo_processamento } = req.query;
-
-        const filtro = {};
-
-        if (proc_cod) {
-            filtro.proc_cod = proc_cod; // Pesquisa por número de processamento
-        }
-
-        if (data_inicio && data_fim) {
-            const startOfDay = new Date(data_inicio);
-            startOfDay.setUTCHours(0, 0, 0, 0); // Começo do dia
-        
-            const endOfDay = new Date(data_fim);
-            endOfDay.setUTCHours(23, 59, 59, 999); // Fim do dia
-        
-            filtro.createdAt = {
-                $gte: startOfDay,  // >= para incluir o início do dia
-                $lte: endOfDay     // <= para incluir o final do dia
-            };
-        }
-
-        if (socio_nr) {
-            filtro.socio_nr = socio_nr; // Pesquisa por número de sócio
-        }
-
-        if (tipo_processamento) {
-            filtro.tipo_processamento = tipo_processamento; // Aplicar o filtro de tipo de processamento
-        }
-
-        const processamentos = await Processamento.find(filtro);
-        res.status(200).send({ processamentos });
-    } catch (error) {
-        res.status(500).send({ error: 'Erro ao realizar a pesquisa de processamentos' });
-    }
-});
-
-
-// Obter todos os registros Processamento
-router.get('/', async (req, res) => {
-    try {
-        const processamentos = await Processamento.find();
-        res.status(200).send({ processamentos });
-    } catch (error) {
-        res.status(500).send(error);
-    }
-});
-
-// Obter um registro Processamento por ID
-router.get('/:id', async (req, res) => {
-    try {
-        const processamento = await Processamento.findById(req.params.id);
-        if (!processamento) {
-            return res.status(404).send();
-        }
-        res.status(200).send(processamento);
-    } catch (error) {
-        res.status(500).send(error);
-    }
-});
-
-// Atualizar um registro Processamento por ID
-router.patch('/:id', async (req, res) => {
-    try {
-        const processamento = await Processamento.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true
-        });
-        if (!processamento) {
-            return res.status(404).send();
-        }
-        res.status(200).send(processamento);
-    } catch (error) {
-        res.status(400).send(error);
-    }
-});
-
-// Eliminar um registro Processamento por ID
-router.delete('/:id', async (req, res) => {
-    try {
-        const processamento = await Processamento.findByIdAndDelete(req.params.id);
-        if (!processamento) {
-            return res.status(404).send();
-        }
-        res.status(200).send(processamento);
-    } catch (error) {
-        res.status(500).send(error);
-    }
-});
-
-
-router.patch('/:id/pago', async (req, res) => {
-    try {
-        console.log(`Iniciando processo de marcação como pago para o processamento ID: ${req.params.id}`);
-
-        // Atualizar o processamento para marcado como pago
-        const processamento = await Processamento.findByIdAndUpdate(
-            req.params.id,
-            { pago: true, data_pagamento: new Date() }, // Definir como pago e registrar a data do pagamento
-            { new: true }
-        );
-
-        if (!processamento) {
-            console.error('Processamento não encontrado');
-            return res.status(404).send('Processamento não encontrado');
-        }
-
-        console.log('Processamento atualizado:', processamento);
-
-        // Criar um novo pagamento associado ao processamento marcado como pago
-        const novoPagamento = new Pagamento({
-            pag_cod: await gerarNovoCodPagamento(), // Função que gera um novo código único para o pagamento
-            socio_nr: processamento.socio_nr, // Associar ao sócio
-            processamentos: [processamento._id], // Associar o ID do processamento
-            data_pagamento: processamento.data_pagamento, // Usar a data de pagamento do processamento
-            metodo_pagamento: 'SEPA' // Exemplo, pode ser ajustado conforme o método de pagamento usado
-        });
-
-        console.log('Criando novo pagamento:', novoPagamento);
-
-        // Salvar o novo pagamento na base de dados
-        await novoPagamento.save();
-
-        console.log('Pagamento salvo com sucesso:', novoPagamento);
-
-        // Retornar sucesso com o processamento atualizado e o pagamento criado
-        res.status(200).send({ processamento, pagamento: novoPagamento });
-    } catch (error) {
-        console.error('Erro ao atualizar o processamento e criar o pagamento:', error);
-        res.status(500).send('Erro ao atualizar o processamento e criar o pagamento');
-    }
-});
-
-
-// Função para gerar um novo código único de pagamento
-async function gerarNovoCodPagamento() {
-    const lastPagamento = await Pagamento.findOne().sort({ pag_cod: -1 });
-    return lastPagamento ? lastPagamento.pag_cod + 1 : 1; // Se houver registros, incrementa o último código, caso contrário começa de 1
-}
-
-
+// Função para enviar email
 async function enviarEmailPagamento(email, processamento) {
-    console.log("Iniciando envio de email...");
-    console.log("Detalhes do sócio:", email);
-    console.log("Dados do processamento:", processamento);
-
-    // Configuração do transporte SMTP
     let transporter = nodemailer.createTransport({
-        host: "mail.andrealface.com", // Servidor SMTP fornecido
-        port: 465, // Porta SSL/TLS
-        secure: true, // Utilizar SSL/TLS
+        host: "mail.andrealface.com",
+        port: 465,
+        secure: true, // SSL/TLS
         auth: {
-            user: "teste@andrealface.com", // Utilizador SMTP
-            pass: "Teste987!12!" // Palavra-passe SMTP
+            user: "teste@andrealface.com",
+            pass: "Teste987!12!"
         },
         tls: {
-            rejectUnauthorized: false // Ignora a validação do certificado SSL
+            rejectUnauthorized: false // Ignora problemas de SSL
         }
     });
 
     try {
-        // Testar a conexão com o servidor SMTP
-        console.log("Testando a conexão com o servidor SMTP...");
-        await transporter.verify();
-        console.log("Conexão com o servidor SMTP bem-sucedida!");
-
-        // Obter dados adicionais necessários
-        console.log("Buscando informações adicionais do sócio...");
         const socio = await Socio.findOne({ socio_nr: processamento.socio_nr });
         const ssComp = await CompartSS.findOne({ ss_comp_cod: processamento.linhas[0].ss_comp_cod });
 
-        console.log("Dados do sócio:", socio);
-        console.log("Dados dos Serviços Sociais:", ssComp);
-
-        // Configurar e enviar o e-mail
         let info = await transporter.sendMail({
             from: '"Serviços Sociais" <servicos.sociais@montemornovo.pt>',
             to: email,
@@ -254,14 +42,127 @@ async function enviarEmailPagamento(email, processamento) {
         });
 
         console.log("Email enviado com sucesso: %s", info.messageId);
-        console.log("Detalhes do email enviado:", info);
-
     } catch (error) {
         console.error("Erro ao enviar email:", error.message);
-        console.error("Detalhes do erro:", error);
-        // Rejeita o erro explicitamente para análise adicional
-        throw error;
+        throw error; // Repassa o erro para ser tratado no chamador
     }
+}
+
+// Rota para criar um novo registro Processamento
+router.post('/', async (req, res) => {
+    try {
+        console.log('Dados recebidos no backend:', req.body);
+
+        const { socio_nr, socio_familiar, doc_nr, doc_valortotal, adse_codigo, ss_comp_cod, valor_unit, quantidade, tipo_processamento, login_usuario, data_doc } = req.body;
+
+        // Validação dos campos obrigatórios
+        if (!socio_nr || !doc_nr || !doc_valortotal || !data_doc) {
+            return res.status(400).send({ error: 'Campos obrigatórios em falta: socio_nr, doc_nr, doc_valortotal, data_doc' });
+        }
+
+        const processamento = new Processamento({
+            socio_nr,
+            socio_familiar,
+            doc_nr,
+            doc_valortotal,
+            data_doc,
+            tipo_processamento,
+            login_usuario,
+            linhas: [
+                {
+                    adse_codigo,
+                    ss_comp_cod,
+                    valor_unit,
+                    quantidade,
+                    reembolso: 0
+                }
+            ],
+            valor_reembolso: 0
+        });
+
+        await processamento.save();
+
+        const socio = await Socio.findOne({ socio_nr });
+        if (socio && socio.email) {
+            try {
+                await enviarEmailPagamento(socio.email, processamento);
+                console.log('E-mail enviado com sucesso para', socio.email);
+            } catch (emailError) {
+                console.error('Erro ao enviar e-mail:', emailError.message);
+            }
+        }
+
+        res.status(201).send(processamento);
+    } catch (error) {
+        console.error('Erro ao criar processamento:', error.message);
+        res.status(500).send({ error: 'Erro ao criar processamento.' });
+    }
+});
+
+// Rota para pesquisa de processamentos
+router.get('/pesquisa', async (req, res) => {
+    try {
+        const { proc_cod, data_inicio, data_fim, socio_nr, tipo_processamento } = req.query;
+        const filtro = {};
+
+        if (proc_cod) filtro.proc_cod = proc_cod;
+        if (data_inicio && data_fim) {
+            filtro.createdAt = {
+                $gte: new Date(data_inicio),
+                $lte: new Date(data_fim)
+            };
+        }
+        if (socio_nr) filtro.socio_nr = socio_nr;
+        if (tipo_processamento) filtro.tipo_processamento = tipo_processamento;
+
+        const processamentos = await Processamento.find(filtro);
+        res.status(200).send({ processamentos });
+    } catch (error) {
+        console.error('Erro ao realizar a pesquisa:', error.message);
+        res.status(500).send({ error: 'Erro ao realizar a pesquisa de processamentos.' });
+    }
+});
+
+// Rota para obter um registro por ID
+router.get('/:id', async (req, res) => {
+    try {
+        const processamento = await Processamento.findById(req.params.id);
+        if (!processamento) return res.status(404).send({ error: 'Registro não encontrado' });
+        res.status(200).send(processamento);
+    } catch (error) {
+        console.error('Erro ao buscar registro:', error.message);
+        res.status(500).send({ error: 'Erro ao buscar processamento' });
+    }
+});
+
+// Atualizar um registro Processamento
+router.patch('/:id', async (req, res) => {
+    try {
+        const processamento = await Processamento.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        if (!processamento) return res.status(404).send({ error: 'Registro não encontrado' });
+        res.status(200).send(processamento);
+    } catch (error) {
+        console.error('Erro ao atualizar registro:', error.message);
+        res.status(400).send({ error: 'Erro ao atualizar processamento.' });
+    }
+});
+
+// Eliminar um registro Processamento
+router.delete('/:id', async (req, res) => {
+    try {
+        const processamento = await Processamento.findByIdAndDelete(req.params.id);
+        if (!processamento) return res.status(404).send({ error: 'Registro não encontrado' });
+        res.status(200).send(processamento);
+    } catch (error) {
+        console.error('Erro ao eliminar registro:', error.message);
+        res.status(500).send({ error: 'Erro ao eliminar processamento' });
+    }
+});
+
+// Gerar um novo código de pagamento
+async function gerarNovoCodPagamento() {
+    const lastPagamento = await Pagamento.findOne().sort({ pag_cod: -1 });
+    return lastPagamento ? lastPagamento.pag_cod + 1 : 1;
 }
 
 export default router;
