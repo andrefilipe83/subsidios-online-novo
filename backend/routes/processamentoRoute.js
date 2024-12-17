@@ -38,28 +38,30 @@ router.post('/', async (req, res) => {
 
         await processamento.save();
 
-  // Adicionar estas linhas após salvar o processamento
-console.log("Procurando sócio pelo número:", socio_nr);
-const socio = await Socio.findOne({ socio_nr: socio_nr });
-console.log("Resultado da busca por sócio:", socio); // Log para depurar a consulta
+        // Adicionar estas linhas após salvar o processamento
+        console.log("Procurando sócio pelo número:", socio_nr);
+        const socio = await Socio.findOne({ socio_nr: socio_nr });
+        console.log("Resultado da busca por sócio:", socio); // Log para depurar a consulta
+        console.log("Valor bruto do email:", socio.email, "Tipo:", typeof socio.email); // Log para depurar o valor do email
 
-if (socio && socio.email) {
-    console.log("E-mail encontrado para o sócio:", socio.email);
-    try {
-        await enviarEmailPagamento(socio.email, processamento);
-        console.log('E-mail enviado com sucesso para', socio.email);
-    } catch (emailError) {
-        console.error('Erro ao enviar e-mail:', emailError.message);
-        console.error('Detalhes do erro:', emailError);
-    }
-} else {
-    if (!socio) {
-        console.warn(`Nenhum sócio encontrado com socio_nr: ${socio_nr}`);
-    } else if (!socio.email) {
-        console.warn(`O campo de e-mail está vazio para o sócio ${socio_nr}`);
-    }
-}
 
+        if (socio && typeof socio.email === 'string' && socio.email.trim() !== '') {
+            const emailLimpo = socio.email.trim();
+            console.log("E-mail encontrado para o sócio (limpo):", emailLimpo);
+            try {
+                await enviarEmailPagamento(emailLimpo, processamento);
+                console.log('E-mail enviado com sucesso para', emailLimpo);
+            } catch (emailError) {
+                console.error('Erro ao enviar e-mail:', emailError.message);
+                console.error('Detalhes do erro:', emailError);
+            }
+        } else {
+            if (!socio) {
+                console.warn(`Nenhum sócio encontrado com socio_nr: ${socio_nr}`);
+            } else if (!socio.email || typeof socio.email !== 'string') {
+                console.warn(`O campo de e-mail está inválido para o sócio ${socio_nr}:`, socio.email);
+            }
+        }
 
         res.status(201).send(processamento);
     } catch (error) {
