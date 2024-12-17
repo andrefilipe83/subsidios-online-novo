@@ -246,6 +246,9 @@ async function enviarEmailPagamento(email, processamento) {
 }*/
 
 async function enviarEmailPagamento(email, processamento) {
+    console.log("Iniciando envio de email...");
+    console.log("Email para:", email);
+
     // Configurar o transporte para envio real
     let transporter = nodemailer.createTransport({
         host: "mail.andrealface.com", // SMTP host fornecido
@@ -261,27 +264,36 @@ async function enviarEmailPagamento(email, processamento) {
     });
 
     try {
-        console.log("Iniciando envio de email...");
-        console.log("Email para:", email);
+        // Testar conexão com o servidor SMTP
+        console.log("Testando conexão com o servidor SMTP...");
+        await transporter.verify();
+        console.log("Conexão com o servidor SMTP estabelecida com sucesso!");
 
         // Obter dados adicionais necessários
         const socio = await Socio.findOne({ socio_nr: processamento.socio_nr });
+        if (!socio) {
+            throw new Error(`Sócio não encontrado na BD para socio_nr: ${processamento.socio_nr}`);
+        }
+
         const ssComp = await CompartSS.findOne({ ss_comp_cod: processamento.linhas[0].ss_comp_cod });
+        if (!ssComp) {
+            throw new Error(`Serviço Social não encontrado na BD para ss_comp_cod: ${processamento.linhas[0].ss_comp_cod}`);
+        }
 
         console.log("Dados do sócio:", socio);
         console.log("Dados do serviço social:", ssComp);
 
-        // Configurar o e-mail
+        // Configurar e enviar o e-mail
         let info = await transporter.sendMail({
             from: '"Serviços Sociais" <servicos.sociais@montemornovo.pt>',
             to: email,
             subject: "Informação de Processamento de Reembolso",
             html: `
-                <p>Caro Sócio n.º ${processamento.socio_nr || '[número de sócio]'} - ${socio ? socio.name : '[nome do sócio]'},</p>
+                <p>Caro Sócio n.º ${processamento.socio_nr || '[número de sócio]'} - ${socio.name || '[nome do sócio]'},</p>
                 
-                <p>Serve o presente para informar que, quanto à despesa ${ssComp ? ssComp.ss_comp_nome : '[Descrição do código dos Serviços Sociais]'}, 
-                no valor de ${processamento.doc_valortotal || '[valor da despesa]'}€, constante do documento n.º ${processamento.doc_nr || '[número da fatura]'} 
-                e valor de ${processamento.doc_valortotal || '[valor da despesa]'}€, foi processado o reembolso de ${processamento.valor_reembolso || '[valor do reembolso dos Serviços Sociais]'}€, 
+                <p>Serve o presente para informar que, quanto à despesa ${ssComp.ss_comp_nome || '[Descrição do código dos Serviços Sociais]'}, 
+                no valor de ${processamento.doc_valortotal || '[valor da despesa]'}€, constante do documento n.º ${processamento.doc_nr || '[número da fatura]'}, 
+                foi processado o reembolso de ${processamento.valor_reembolso || '[valor do reembolso dos Serviços Sociais]'}€, 
                 cujo pagamento por transferência bancária se prevê para os próximos dias.</p>
                 
                 <p>Com os melhores cumprimentos,</p>
@@ -292,8 +304,20 @@ async function enviarEmailPagamento(email, processamento) {
         console.log("Email enviado com sucesso: %s", info.messageId);
     } catch (error) {
         console.error("Erro ao enviar email:", error.message);
+
+        // Tratamento de erros específicos
+        if (error.message.includes("Sócio não encontrado")) {
+            console.error("Verifica se o sócio existe na base de dados.");
+        } else if (error.message.includes("Serviço Social não encontrado")) {
+            console.error("Verifica se o código dos Serviços Sociais é válido.");
+        } else if (error.response) {
+            console.error("Resposta do servidor SMTP:", error.response);
+        } else {
+            console.error("Erro inesperado ao enviar email:", error);
+        }
     }
 }
+
 
 
 export default router;
