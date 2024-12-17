@@ -38,17 +38,27 @@ router.post('/', async (req, res) => {
 
         await processamento.save();
 
-        // Adicionar estas linhas após salvar o processamento
-        const socio = await Socio.findOne({ socio_nr: socio_nr });
-        if (socio && socio.email) {
-            try {
-                await enviarEmailPagamento(socio.email, processamento);
-                console.log('E-mail enviado com sucesso para', socio.email);
-            } catch (emailError) {
-                console.error('Erro ao enviar e-mail:', emailError);
-                // Não impede o sucesso da operação se o e-mail falhar
-            }
-        }
+  // Adicionar estas linhas após salvar o processamento
+const socio = await Socio.findOne({ socio_nr: socio_nr });
+console.log("Resultado da busca por sócio:", socio); // Log para depurar a consulta
+
+if (socio && socio.email) {
+    console.log("E-mail encontrado para o sócio:", socio.email);
+    try {
+        await enviarEmailPagamento(socio.email, processamento);
+        console.log('E-mail enviado com sucesso para', socio.email);
+    } catch (emailError) {
+        console.error('Erro ao enviar e-mail:', emailError.message);
+        console.error('Detalhes do erro:', emailError);
+    }
+} else {
+    if (!socio) {
+        console.warn(`Nenhum sócio encontrado com socio_nr: ${socio_nr}`);
+    } else if (!socio.email) {
+        console.warn(`O campo de e-mail está vazio para o sócio ${socio_nr}`);
+    }
+}
+
 
         res.status(201).send(processamento);
     } catch (error) {
