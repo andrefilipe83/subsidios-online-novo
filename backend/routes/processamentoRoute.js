@@ -39,6 +39,7 @@ router.post('/', async (req, res) => {
         await processamento.save();
 
   // Adicionar estas linhas após salvar o processamento
+console.log("Procurando sócio pelo número:", socio_nr);
 const socio = await Socio.findOne({ socio_nr: socio_nr });
 console.log("Resultado da busca por sócio:", socio); // Log para depurar a consulta
 
