@@ -17,7 +17,7 @@
     "express": "^4.19.2",
     "mongodb": "^6.6.2",
     "mongoose": "^8.3.5",
-    "nodemailer": "^6.9.14",
+    "nodemailer": "^6.9.16",
     "pdfkit": "^0.15.0",
     "xmlbuilder": "^15.1.1"
   },
