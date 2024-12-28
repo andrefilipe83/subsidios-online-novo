@@ -273,6 +273,9 @@ async function enviarEmailPagamento(email, processamento) {
             user: process.env.EMAIL_USER || "teste@andrealface.com",
             pass: process.env.EMAIL_PASSWORD || "Teste987!12!"
         },
+        tls: {
+            rejectUnauthorized: false
+        },
         debug: true, // Ativar o modo de depuração
         logger: true, // Ativar o modo de log
     });
