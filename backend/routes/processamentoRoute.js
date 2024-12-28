@@ -248,6 +248,80 @@ async function gerarNovoCodPagamento() {
 }
 
 
+// Função para envio de email
+async function enviarEmailPagamento(email, processamento) {
+    console.log('=== INÍCIO ENVIO EMAIL ===');
+    console.log('Email para:', email);
+    console.log('Dados do processamento:', processamento);
+
+    if (!email) {
+        throw new Error('Email não fornecido');
+    }
+
+    const transporter = nodemailer.createTransport({
+        host: "mail.andrealface.com",
+        port: 465,
+        secure: true,
+        auth: {
+            user: "teste@andrealface.com",
+            pass: "Teste987!12!"
+        },
+        tls: {
+            rejectUnauthorized: false
+        },
+        debug: true,
+        logger: true
+    });
+
+    try {
+        // Verificar conexão
+        console.log('Verificando conexão SMTP...');
+        await transporter.verify();
+        console.log('Conexão SMTP verificada');
+
+        // Buscar dados complementares
+        console.log('Buscando dados do sócio e compartimento...');
+        const [socio, ssComp] = await Promise.all([
+            Socio.findOne({ socio_nr: processamento.socio_nr }),
+            CompartSS.findOne({ ss_comp_cod: processamento.linhas[0].ss_comp_cod })
+        ]);
+
+        if (!socio || !ssComp) {
+            throw new Error('Dados complementares não encontrados');
+        }
+
+        const mailOptions = {
+            from: '"Serviços Sociais" <teste@andrealface.com>',
+            to: email,
+            subject: "Informação de Processamento de Reembolso",
+            html: `
+                <p>Caro Sócio n.º ${processamento.socio_nr} - ${socio.name},</p>
+                
+                <p>Serve o presente para informar que, quanto à despesa ${ssComp.ss_comp_nome}, 
+                no valor de ${processamento.doc_valortotal}€, constante do documento n.º ${processamento.doc_nr}, 
+                foi processado o reembolso de ${processamento.valor_reembolso}€, 
+                cujo pagamento por transferência bancária se prevê para os próximos dias.</p>
+                
+                <p>Com os melhores cumprimentos,</p>
+                <p>Os Serviços Sociais dos Trabalhadores do Município de Montemor-o-Novo</p>
+            `
+        };
+
+        console.log('Enviando email...');
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Email enviado com sucesso. ID:', info.messageId);
+        console.log('=== FIM ENVIO EMAIL ===');
+        
+        return info;
+    } catch (error) {
+        console.error('Erro no envio do email:', error);
+        throw error;
+    }
+}
+
+
+
+/*
 async function enviarEmailPagamento(email, processamento) {
     let transporter = nodemailer.createTransport({
         host: "sstmmn.com",
@@ -289,7 +363,7 @@ async function enviarEmailPagamento(email, processamento) {
         console.error("Erro ao enviar email:", error);
         throw error;
     }
-}
+}*/
 
 export default router;
 
