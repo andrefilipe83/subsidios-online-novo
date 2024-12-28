@@ -440,14 +440,13 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Função para enviar email
+// Função para envio de email
 async function enviarEmailPagamento(email, processamento) {
-    console.log('=== INÍCIO DO ENVIO DE EMAIL ===');
-    console.log('Email destinatário:', email);
+    console.log('=== INÍCIO ENVIO EMAIL ===');
+    console.log('Email para:', email);
     console.log('Dados do processamento:', processamento);
 
     if (!email) {
-        console.error('Email não fornecido');
         throw new Error('Email não fornecido');
     }
 
@@ -479,19 +478,18 @@ async function enviarEmailPagamento(email, processamento) {
             CompartSS.findOne({ ss_comp_cod: processamento.linhas[0].ss_comp_cod })
         ]);
 
-        console.log('Dados encontrados:', {
-            socio: socio ? 'encontrado' : 'não encontrado',
-            ssComp: ssComp ? 'encontrado' : 'não encontrado'
-        });
+        if (!socio || !ssComp) {
+            throw new Error('Dados complementares não encontrados');
+        }
 
         const mailOptions = {
             from: '"Serviços Sociais" <teste@andrealface.com>',
             to: email,
             subject: "Informação de Processamento de Reembolso",
             html: `
-                <p>Caro Sócio n.º ${processamento.socio_nr} - ${socio?.name || '[nome não encontrado]'},</p>
+                <p>Caro Sócio n.º ${processamento.socio_nr} - ${socio.name},</p>
                 
-                <p>Serve o presente para informar que, quanto à despesa ${ssComp?.ss_comp_nome || '[descrição não encontrada]'}, 
+                <p>Serve o presente para informar que, quanto à despesa ${ssComp.ss_comp_nome}, 
                 no valor de ${processamento.doc_valortotal}€, constante do documento n.º ${processamento.doc_nr}, 
                 foi processado o reembolso de ${processamento.valor_reembolso}€, 
                 cujo pagamento por transferência bancária se prevê para os próximos dias.</p>
@@ -504,14 +502,14 @@ async function enviarEmailPagamento(email, processamento) {
         console.log('Enviando email...');
         const info = await transporter.sendMail(mailOptions);
         console.log('Email enviado com sucesso. ID:', info.messageId);
-        console.log('=== FIM DO ENVIO DE EMAIL ===');
+        console.log('=== FIM ENVIO EMAIL ===');
         
         return info;
     } catch (error) {
         console.error('Erro no envio do email:', error);
         throw error;
     }
-}*/
+}
 
 // Rota de teste de email
 router.post('/teste-email', async (req, res) => {
